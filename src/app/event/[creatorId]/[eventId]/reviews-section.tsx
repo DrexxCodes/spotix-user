@@ -3,7 +3,7 @@
 import type React from "react"
 import { MessageSquare } from "lucide-react"
 import EventReviews from "./event-reviews"
-import Review from "./review"
+// import Review from "./review"
 
 interface ReviewsSectionProps {
   eventId: string
@@ -40,9 +40,9 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
             isAuthenticated={isAuthenticated}
           />
 
-          <div className="mt-6 pt-6 border-t">
+          {/* <div className="mt-6 pt-6 border-t">
             <Review eventId={eventId} eventName={eventName} />
-          </div>
+          </div> */}
         </>
       ) : (
         <div className="text-center py-8">

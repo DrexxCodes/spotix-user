@@ -2,19 +2,21 @@
 
 import type React from "react"
 import { useEffect, useState, useCallback, useRef } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore"
 import { db, auth } from "../../../lib/firebase"
 import UserHeader from "@/components/UserHeader"
 import Footer from "@/components/footer"
-import { ArrowLeft, Ticket, X, Wallet, Maximize2 } from "lucide-react"
+import { ArrowLeft, Ticket, X, Wallet, Maximize2, AlertCircle } from "lucide-react"
 import LoginButton from "@/components/LoginButton"
 import EventDetailsSection from "./event-details-section"
 import LocationSection from "./location-section"
 import ReviewsSection from "./reviews-section"
 import BookerDetailsSection from "./booker-details-section"
 import BuyTicketDialog from "./buy-ticket-dialog"
+import MerchSection from "./merch-section"
 import { formatNumber } from "@/utils/formatter"
+import { ReportModal } from "./report-modal"
 
 interface EventType {
   id: string
@@ -154,11 +156,16 @@ const Preloader = () => (
   </div>
 )
 
-export default function ClientPage() {
-  const params = useParams()
+export default function ClientPage({
+  params,
+}: {
+  params: {
+    creatorId: string
+    eventId: string
+  }
+}) {
+  const { creatorId, eventId } = params
   const router = useRouter()
-  const creatorId = params?.creatorId as string
-  const eventId = params?.eventId as string
 
   const [eventData, setEventData] = useState<EventType | null>(null)
   const [loading, setLoading] = useState(true)
@@ -185,6 +192,7 @@ export default function ClientPage() {
   const [buttonPosition, setButtonPosition] = useState<"bottom" | "static" | "top">("bottom")
   const bookerDetailsRef = useRef<HTMLDivElement>(null)
   const footerRef = useRef<HTMLDivElement>(null)
+  const [showReportModal, setShowReportModal] = useState(false)
 
   // Use sessionStorage for caching
   const cacheKey = `event_${eventId}_${creatorId}`
@@ -644,6 +652,16 @@ export default function ClientPage() {
             </button>
 
             <div className="flex items-center gap-4">
+              {/* Report Button */}
+              <button
+                onClick={() => setShowReportModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-medium transition-colors border-2 border-red-200"
+                title="Report this event"
+              >
+                <AlertCircle size={18} />
+                <span className="hidden sm:inline">Report</span>
+              </button>
+
               {isAuthenticated ? (
                 <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-800 px-3 py-1.5 rounded-lg shadow-md">
                   <Wallet size={16} className="text-white" />
@@ -718,6 +736,9 @@ export default function ClientPage() {
           {/* Location Section */}
           <LocationSection eventVenue={eventData.eventVenue} eventName={eventData.eventName} />
 
+          {/* Merch Section */}
+          <MerchSection eventId={eventId || ""} creatorId={creatorId || ""} />
+
           {/* Reviews Section */}
           <ReviewsSection
             eventId={eventId || ""}
@@ -777,7 +798,7 @@ export default function ClientPage() {
               >
                 <div className="flex items-center justify-center gap-2">
                   <Ticket size={20} />
-                  {eventData.isFree ? "Get Free Ticket" : "Buy Tickets"}
+                  {eventData.isFree ? "Register" : "Buy Tickets"}
                   {isEventToday && <span className="animate-pulse">🔥</span>}
                 </div>
               </button>
@@ -822,6 +843,15 @@ export default function ClientPage() {
             </div>
           </div>
         )}
+
+        {/* Report Modal */}
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          eventId={eventId || ""}
+          creatorId={creatorId || ""}
+          eventName={eventData.eventName}
+        />
       </div>
 
       <div ref={footerRef}>

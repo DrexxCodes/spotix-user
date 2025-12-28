@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { collection, query, limit, getDocs, orderBy } from "firebase/firestore"
 import { db } from "../../../lib/firebase"
-import { Calendar, MapPin, User } from "lucide-react"
+import { Calendar, MapPin, User, Mail, Phone, Shield, CheckCircle, Star, TrendingUp, ExternalLink } from "lucide-react"
 
 interface BookerDetailsSectionProps {
   bookerDetails: {
@@ -24,7 +24,23 @@ interface SuggestedEvent {
   eventImage: string
   eventDate: string
   eventVenue: string
-  ticketsSold?: number
+}
+
+// Utility function to transform Cloudinary URLs
+const getOptimizedImageUrl = (url: string, width = 400, height = 300): string => {
+  if (!url) return "/placeholder.svg"
+  
+  if (url.includes('cloudinary.com')) {
+    const uploadIndex = url.indexOf('/upload/')
+    if (uploadIndex !== -1) {
+      const beforeUpload = url.substring(0, uploadIndex + 8)
+      const afterUpload = url.substring(uploadIndex + 8)
+      const transformations = `c_fill,w_${width},h_${height},q_auto,f_auto`
+      return `${beforeUpload}${transformations}/${afterUpload}`
+    }
+  }
+  
+  return url
 }
 
 const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetails, bookerName, creatorId }) => {
@@ -45,7 +61,6 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
 
         const events: SuggestedEvent[] = []
         querySnapshot.forEach((doc) => {
-          // Exclude the current event being viewed
           if (doc.id !== currentEventId) {
             const data = doc.data()
             events.push({
@@ -54,12 +69,10 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
               eventImage: data.eventImage,
               eventDate: data.eventDate,
               eventVenue: data.eventVenue,
-              ticketsSold: data.ticketsSold || 0,
             })
           }
         })
 
-        // Shuffle and take 3 random events
         const shuffled = events.sort(() => 0.5 - Math.random())
         setSuggestedEvents(shuffled.slice(0, 3))
       } catch (error) {
@@ -77,109 +90,236 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      <div className="flex items-center gap-3 mb-6">
-        <User size={24} className="text-purple-600" />
-        <h2 className="text-2xl font-bold text-gray-800">Event Organizer</h2>
+    <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl shadow-lg border-2 border-purple-100 overflow-hidden">
+      {/* Header Section with Gradient */}
+      <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-6 md:p-8">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+            <User size={32} className="text-white" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-3xl font-bold text-white mb-1">Event Organizer</h2>
+            <p className="text-purple-100 text-sm">Meet the team behind this amazing event</p>
+          </div>
+        </div>
       </div>
 
-      {bookerDetails ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="font-medium text-gray-600">Organizer:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-800">{bookerDetails.username}</span>
-                {bookerDetails.isVerified && (
-                  <span
-                    className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium"
-                    title="Verified Organizer"
-                  >
-                    ✓ Verified
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="font-medium text-gray-600">Email:</span>
-              <span className="text-gray-800">{bookerDetails.email}</span>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="font-medium text-gray-600">Phone:</span>
-              <span className="text-gray-800">{bookerDetails.phone}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="font-medium text-gray-600">Status:</span>
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  bookerDetails.isVerified ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {bookerDetails.isVerified ? "Verified" : "Unverified"}
-              </span>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="text-center py-4">
-          <p className="text-gray-500">Loading organizer details...</p>
-        </div>
-      )}
-
-      {/* Suggested Events Section */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">You might also like these events from {bookerName}</h3>
-
-        {loadingSuggestions ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-gray-100 rounded-lg p-3 animate-pulse">
-                <div className="h-24 md:h-32 bg-gray-200 rounded-lg mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-1"></div>
-                <div className="h-2 bg-gray-200 rounded mb-1"></div>
-                <div className="h-2 bg-gray-200 rounded"></div>
-              </div>
-            ))}
-          </div>
-        ) : suggestedEvents.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {suggestedEvents.map((event) => (
-              <div
-                key={event.id}
-                className="bg-gray-50 rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => handleEventClick(event.id)}
-              >
-                <div className="h-24 md:h-32 overflow-hidden">
-                  <img
-                    src={event.eventImage || "/placeholder.svg"}
-                    alt={event.eventName}
-                    className="w-full h-full object-cover"
-                  />
+      {/* Organizer Details Section */}
+      <div className="p-6 md:p-8">
+        {bookerDetails ? (
+          <div className="space-y-6">
+            {/* Profile Card */}
+            <div className="bg-white rounded-xl shadow-md border border-purple-100 p-6">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-2xl font-bold text-white">
+                      {bookerDetails.username.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                      {bookerDetails.username}
+                      {bookerDetails.isVerified && (
+                        <span className="inline-flex items-center gap-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                          <CheckCircle size={14} />
+                          Verified
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">Professional Event Organizer</p>
+                  </div>
                 </div>
-                <div className="p-2 md:p-3">
-                  <h4 className="font-medium text-gray-800 mb-1 line-clamp-2 text-xs md:text-sm">{event.eventName}</h4>
-                  <div className="space-y-1 text-xs text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Calendar size={8} className="md:w-2.5 md:h-2.5" />
-                      <span className="truncate">{new Date(event.eventDate).toLocaleDateString()}</span>
+              </div>
+
+              {/* Contact Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Email */}
+                <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-purple-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                      <Mail size={18} className="text-purple-600" />
                     </div>
-                    <div className="flex items-center gap-1">
-                      <MapPin size={8} className="md:w-2.5 md:h-2.5" />
-                      <span className="truncate">{event.eventVenue}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Email</p>
+                      <p className="text-sm font-medium text-gray-900 truncate">{bookerDetails.email}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-purple-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                      <Phone size={18} className="text-purple-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Phone</p>
+                      <p className="text-sm font-medium text-gray-900 truncate">{bookerDetails.phone}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Verification Status */}
+                <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-purple-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                      <Shield size={18} className={bookerDetails.isVerified ? "text-green-600" : "text-gray-400"} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Status</p>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+                            bookerDetails.isVerified
+                              ? "bg-gradient-to-r from-green-500 to-green-600 text-white"
+                              : "bg-gray-200 text-gray-700"
+                          }`}
+                        >
+                          {bookerDetails.isVerified ? (
+                            <>
+                              <CheckCircle size={12} />
+                              Verified
+                            </>
+                          ) : (
+                            "Unverified"
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trust Badge */}
+                <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-purple-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                      <Star size={18} className="text-amber-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Trust Level</p>
+                      <p className="text-sm font-bold text-gray-900">
+                        {bookerDetails.isVerified ? "Premium" : "Standard"}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
+
+              {/* Trust Indicators */}
+              {bookerDetails.isVerified && (
+                <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                      <Shield size={16} className="text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-bold text-gray-900 mb-1">Verified Organizer</h4>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        This event organizer has been verified by Spotix. Their identity and credentials have been confirmed,
+                        ensuring a trustworthy event experience.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Suggested Events Section */}
+            <div className="bg-white rounded-xl shadow-md border border-purple-100 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg flex items-center justify-center shadow-sm">
+                    <TrendingUp size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">More from {bookerName}</h3>
+                    <p className="text-sm text-gray-500">Discover other amazing events</p>
+                  </div>
+                </div>
+              </div>
+
+              {loadingSuggestions ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="bg-gray-100 rounded-xl overflow-hidden animate-pulse">
+                      <div className="h-40 bg-gray-200"></div>
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded"></div>
+                        <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : suggestedEvents.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {suggestedEvents.map((event) => (
+                    <div
+                      key={event.id}
+                      className="group bg-white rounded-xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-purple-300 transform hover:scale-105"
+                      onClick={() => handleEventClick(event.id)}
+                    >
+                      <div className="relative h-40 overflow-hidden bg-gray-100">
+                        <img
+                          src={getOptimizedImageUrl(event.eventImage, 400, 300)}
+                          alt={event.eventName}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        
+                        {/* External Link Icon */}
+                        <div className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg">
+                          <ExternalLink size={14} className="text-purple-600" />
+                        </div>
+
+                      </div>
+                      
+                      <div className="p-4">
+                        <h4 className="font-bold text-gray-900 mb-3 line-clamp-2 text-sm group-hover:text-purple-700 transition-colors">
+                          {event.eventName}
+                        </h4>
+                        
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                              <Calendar size={12} className="text-purple-600" />
+                            </div>
+                            <span className="truncate">
+                              {new Date(event.eventDate).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric"
+                              })}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                              <MapPin size={12} className="text-purple-600" />
+                            </div>
+                            <span className="truncate">{event.eventVenue}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar size={32} className="text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 font-medium">No other events available at the moment</p>
+                  <p className="text-sm text-gray-400 mt-2">Check back later for more events from {bookerName}</p>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            <p>No other events available from this organizer at the moment.</p>
+          <div className="text-center py-12">
+            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">Loading organizer details...</p>
           </div>
         )}
       </div>

@@ -10,7 +10,7 @@ import UserHeader from "../../components/UserHeader"
 import Footer from "../../components/footer"
 import FetchWallet from "../../components/fetch-wallet"
 import LoginButton from "../../components/LoginButton"
-import "./home.css"
+import { Calendar, MapPin, Clock, Search, Filter, X } from "lucide-react"
 
 interface PublicEventType {
   eventName: string
@@ -38,226 +38,173 @@ interface SearchSuggestion {
   eventId: string
 }
 
-// Network speed detection
-const getNetworkSpeed = (): "slow" | "medium" | "fast" => {
-  // @ts-ignore
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+const EventCardSkeleton = () => (
+  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
+    <div className="h-48 bg-gray-200"></div>
+    <div className="p-4 space-y-3">
+      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+    </div>
+  </div>
+)
 
-  if (connection) {
-    const effectiveType = connection.effectiveType
-    if (effectiveType === "slow-2g" || effectiveType === "2g") return "slow"
-    if (effectiveType === "3g") return "medium"
-    return "fast"
-  }
-
-  // Fallback: detect based on device type
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-  return isMobile ? "medium" : "fast"
-}
-
-// Image optimization function
-const optimizeImageUrl = (originalUrl: string, width = 400): string => {
-  if (!originalUrl || originalUrl.includes("/placeholder.svg")) {
-    return originalUrl
-  }
-
-  const networkSpeed = getNetworkSpeed()
-
-  // Quality settings based on network speed
-  const qualityMap = {
-    slow: 60,
-    medium: 75,
-    fast: 85,
-  }
-
-  // Width settings based on network speed
-  const widthMap = {
-    slow: Math.min(width, 300),
-    medium: Math.min(width, 400),
-    fast: width,
-  }
-
-  const quality = qualityMap[networkSpeed]
-  const optimizedWidth = widthMap[networkSpeed]
-
-  // For Firebase Storage URLs, add transformation parameters
-  if (originalUrl.includes("firebasestorage.googleapis.com")) {
-    const url = new URL(originalUrl)
-    url.searchParams.set("w", optimizedWidth.toString())
-    url.searchParams.set("q", quality.toString())
-    url.searchParams.set("fm", "webp") // Use WebP format for better compression
-    return url.toString()
-  }
-
-  // For other URLs, try to add Cloudinary-style parameters if possible
-  if (originalUrl.includes("cloudinary.com")) {
-    return originalUrl.replace("/upload/", `/upload/w_${optimizedWidth},q_${quality},f_auto/`)
-  }
-
-  // For other services, return original URL
-  return originalUrl
-}
-
-// Lazy loading hook
-const useLazyLoading = (ref: React.RefObject<HTMLElement | null>, threshold = 0.1) => {
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    const currentRef = ref.current
-
-    if (!currentRef) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-          observer.disconnect()
-        }
-      },
-      { threshold },
-    )
-
-    observer.observe(currentRef)
-
-    return () => {
-      observer.disconnect()
+// Utility function to transform Cloudinary URLs
+const getOptimizedImageUrl = (url: string, width = 800, height = 600): string => {
+  if (!url) return "/placeholder.svg"
+  
+  // Check if it's a Cloudinary URL
+  if (url.includes('cloudinary.com')) {
+    // Extract the upload part and everything after it
+    const uploadIndex = url.indexOf('/upload/')
+    if (uploadIndex !== -1) {
+      const beforeUpload = url.substring(0, uploadIndex + 8) // includes '/upload/'
+      const afterUpload = url.substring(uploadIndex + 8)
+      
+      // Add transformations: crop to fill, set dimensions, quality auto, format auto
+      const transformations = `c_fill,w_${width},h_${height},q_auto,f_auto`
+      return `${beforeUpload}${transformations}/${afterUpload}`
     }
-  }, [ref, threshold])
-
-  return isVisible
+  }
+  
+  return url
 }
 
-// Lazy Image Component
-const LazyImage: React.FC<{
+const LazyImage: React.FC<{ 
   src: string
   alt: string
-  className?: string
   width?: number
-}> = ({ src, alt, className, width = 400 }) => {
+  height?: number
+  className?: string 
+}> = ({ src, alt, width = 800, height = 600, className }) => {
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
-  const imgRef = useRef<HTMLDivElement>(null)
-  const isVisible = useLazyLoading(imgRef)
-
-  const optimizedSrc = optimizeImageUrl(src, width)
+  const optimizedSrc = getOptimizedImageUrl(src, width, height)
 
   return (
-    <div ref={imgRef} className={`lazy-image-container ${className || ""}`}>
-      {isVisible && (
-        <>
-          {!isLoaded && !hasError && (
-            <div className="image-placeholder">
-              <div className="image-skeleton"></div>
-            </div>
-          )}
-          <img
-            src={optimizedSrc || "/placeholder.svg"}
-            alt={alt}
-            onLoad={() => setIsLoaded(true)}
-            onError={() => {
-              setHasError(true)
-              setIsLoaded(true)
-            }}
-            style={{
-              opacity: isLoaded ? 1 : 0,
-              transition: "opacity 0.3s ease-in-out",
-            }}
-          />
-          {hasError && (
-            <div className="image-error">
-              <span>Failed to load image</span>
-            </div>
-          )}
-        </>
+    <div className={`relative ${className || ""}`}>
+      {!isLoaded && !hasError && (
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
+      )}
+      <img
+        src={optimizedSrc}
+        alt={alt}
+        onLoad={() => setIsLoaded(true)}
+        onError={() => {
+          setHasError(true)
+          setIsLoaded(true)
+        }}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+      />
+      {hasError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
+          Failed to load
+        </div>
       )}
     </div>
   )
 }
 
-// Loading skeleton component for event cards
-const EventCardSkeleton = () => (
-  <div className="event-card-skeleton animate-pulse">
-    <div className="skeleton-tag"></div>
-    <div className="skeleton-date"></div>
-    <div className="skeleton-image"></div>
-    <div className="skeleton-title"></div>
-    <div className="skeleton-type"></div>
-    <div className="skeleton-venue"></div>
-    <div className="skeleton-booker"></div>
-  </div>
-)
-
-// Event Group Card Component
-const EventGroupCard: React.FC<{
-  eventGroup: EventGroupData
-  onClick: () => void
-}> = ({ eventGroup, onClick }) => {
-  const cardRef = useRef<HTMLDivElement>(null)
-  const isVisible = useLazyLoading(cardRef, 0.1)
-
-  if (!isVisible) {
-    return (
-      <div ref={cardRef} className="event-card-placeholder">
-        <EventCardSkeleton />
-      </div>
-    )
-  }
-
+const EventGroupCard: React.FC<{ eventGroup: EventGroupData; onClick: () => void }> = ({ eventGroup, onClick }) => {
   return (
-    <div ref={cardRef} onClick={onClick} className="event-card event-group-card">
-      <div className="event-card-image">
-        <LazyImage src={eventGroup.imageURL || "/placeholder.svg"} alt={eventGroup.eventName || "Event"} width={400} />
-        <div className="event-group-overlay">
-          <span className="event-group-badge">Event Collection</span>
+    <div
+      onClick={onClick}
+      className="group bg-white rounded-xl border-2 border-gray-200 overflow-hidden hover:border-purple-300 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
+    >
+      <div className="relative h-48 overflow-hidden bg-gray-100">
+        <LazyImage 
+          src={eventGroup.imageURL || "/placeholder.svg"} 
+          alt={eventGroup.eventName || "Event"}
+          width={800}
+          height={600}
+          className="w-full h-full"
+        />
+        <div className="absolute top-3 left-3">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white shadow-lg" style={{ background: '#6b2fa5' }}>
+            Event Collection
+          </span>
         </div>
       </div>
-
-      <div className="event-card-content">
-        <h2 className="event-title">{eventGroup.eventName || "Untitled Event"}</h2>
-        <p className="event-type">{eventGroup.eventType || "Event Collection"}</p>
+      <div className="p-4">
+        <h3 className="font-bold text-lg text-gray-900 group-hover:text-purple-700 transition-colors line-clamp-2">
+          {eventGroup.eventName || "Untitled Event"}
+        </h3>
+        <p className="text-sm text-gray-600 mt-1">{eventGroup.eventType || "Event Collection"}</p>
       </div>
     </div>
   )
 }
 
-// Lazy Event Card Component
 const LazyEventCard: React.FC<{
   event: PublicEventType
   isPast?: boolean
   isToday?: boolean
   onClick: () => void
 }> = ({ event, isPast = false, isToday = false, onClick }) => {
-  const cardRef = useRef<HTMLDivElement>(null)
-  const isVisible = useLazyLoading(cardRef, 0.1)
-
-  if (!isVisible) {
-    return (
-      <div ref={cardRef} className="event-card-placeholder">
-        <EventCardSkeleton />
-      </div>
-    )
-  }
-
   return (
-    <div ref={cardRef} onClick={onClick} className="event-card">
-      <div className="event-card-header">
-        <span className={`event-price-tag ${!event.freeOrPaid ? "free" : "paid"}`}>
-          {!event.freeOrPaid ? "Free" : "Paid"}
-        </span>
+    <div
+      onClick={onClick}
+      className="group bg-white rounded-xl border-2 border-gray-200 overflow-hidden hover:border-purple-300 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
+    >
+      <div className="relative h-48 overflow-hidden bg-gray-100">
+        <LazyImage 
+          src={event.imageURL || "/placeholder.svg"} 
+          alt={event.eventName}
+          width={800}
+          height={600}
+          className="w-full h-full"
+        />
+        
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex gap-2">
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white shadow-lg ${!event.freeOrPaid ? 'bg-green-500' : 'bg-blue-500'}`}>
+            {!event.freeOrPaid ? "Free" : "Paid"}
+          </span>
+          {isToday && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-500 text-white shadow-lg animate-pulse">
+              Today
+            </span>
+          )}
+          {isPast && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-500 text-white shadow-lg">
+              Past
+            </span>
+          )}
+        </div>
 
-        <span className={`event-date-tag ${isPast ? "past" : ""} ${isToday ? "today" : ""}`}>
-          {new Date(event.eventStartDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-        </span>
+        {/* Date Badge */}
+        <div className="absolute top-3 right-3">
+          <div className="bg-white rounded-lg shadow-lg p-2 text-center min-w-[60px]">
+            <div className="text-xs font-semibold uppercase" style={{ color: '#6b2fa5' }}>
+              {new Date(event.eventStartDate).toLocaleDateString("en-US", { month: "short" })}
+            </div>
+            <div className="text-2xl font-bold text-gray-900">
+              {new Date(event.eventStartDate).getDate()}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="event-card-image">
-        <LazyImage src={event.imageURL || "/placeholder.svg"} alt={event.eventName} width={400} />
-      </div>
-
-      <div className="event-card-content">
-        <h2 className="event-title">{event.eventName}</h2>
-        <p className="event-type">{event.eventType}</p>
-        <p className="event-venue">{event.venue}</p>
+      <div className="p-4">
+        <h3 className="font-bold text-lg text-gray-900 group-hover:text-purple-700 transition-colors line-clamp-2 mb-2">
+          {event.eventName}
+        </h3>
+        
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#f3e8ff' }}>
+              <Calendar size={12} style={{ color: '#6b2fa5' }} />
+            </div>
+            <span className="truncate">{event.eventType}</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#f3e8ff' }}>
+              <MapPin size={12} style={{ color: '#6b2fa5' }} />
+            </div>
+            <span className="truncate">{event.venue}</span>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -278,31 +225,21 @@ const Home = () => {
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [pageLoaded, setPageLoaded] = useState(false)
   const router = useRouter()
 
-  // Cache key and duration
   const cacheKey = "home_public_events_data"
-  const cacheDuration = 5 * 60 * 1000 // 5 minutes in milliseconds
+  const cacheDuration = 5 * 60 * 1000
 
-  // Format number with commas
-  const formatNumber = useCallback((num: number): string => {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-  }, [])
-
-  // Get today's date in YYYY-MM-DD format
   const getTodayDate = () => {
     const today = new Date()
     return today.toISOString().split("T")[0]
   }
 
-  // Check if event is happening today
   const isEventToday = (eventDate: string) => {
     const eventDay = new Date(eventDate).toISOString().split("T")[0]
     return eventDay === getTodayDate()
   }
 
-  // Format today's date for display
   const formatTodayDate = () => {
     const today = new Date()
     return today.toLocaleDateString("en-US", {
@@ -331,11 +268,10 @@ const Home = () => {
 
   const fetchFreshEvents = useCallback(async () => {
     try {
-      // Fetch from publicEvents collection with limit for upcoming events
       const publicEventsQuery = query(
         collection(db, "publicEvents"),
         orderBy("timestamp", "desc"),
-        limit(50), // Get more to filter properly
+        limit(50),
       )
       const eventsSnapshot = await getDocs(publicEventsQuery)
 
@@ -345,7 +281,6 @@ const Home = () => {
       eventsSnapshot.docs.forEach((doc) => {
         const event = doc.data() as PublicEventType
 
-        // Check if this is an event group
         if (event.eventGroup === true) {
           eventGroupsList.push({
             eventName: event.eventName,
@@ -356,7 +291,7 @@ const Home = () => {
         } else {
           eventList.push({
             ...event,
-            eventId: event.eventId || doc.id, // Ensure eventId exists
+            eventId: event.eventId || doc.id,
           })
         }
       })
@@ -366,7 +301,6 @@ const Home = () => {
 
       const now = new Date()
 
-      // Separate events by timing (use eventList instead of all events)
       const upcoming = eventList.filter((e) => {
         if (!e || !e.eventStartDate) return false
         const eventDate = new Date(e.eventStartDate)
@@ -384,7 +318,6 @@ const Home = () => {
         return eventDate < now && !isEventToday(e.eventStartDate)
       })
 
-      // Sort and limit upcoming events to 10 most recent
       const sortedUpcoming = upcoming
         .sort((a, b) => new Date(a.eventStartDate).getTime() - new Date(b.eventStartDate).getTime())
         .slice(0, 10)
@@ -400,7 +333,6 @@ const Home = () => {
       setEventsToday(sortedToday)
       setPassedEvents(sortedPast)
 
-      // Cache the data with timestamp
       const cacheData = {
         events: eventList,
         eventGroups: eventGroupsList,
@@ -421,10 +353,9 @@ const Home = () => {
 
   useEffect(() => {
     const handlePageLoad = () => {
-      setPageLoaded(true)
       setTimeout(() => {
         setIsLoading(false)
-      }, 1000) // Show preloader for at least 1 second
+      }, 1000)
     }
 
     if (document.readyState === "complete") {
@@ -437,7 +368,6 @@ const Home = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      // Try to get from cache first
       const cachedDataString = sessionStorage.getItem(cacheKey)
 
       if (cachedDataString) {
@@ -445,7 +375,6 @@ const Home = () => {
           const cachedData = JSON.parse(cachedDataString)
           const now = Date.now()
 
-          // Check if cache is still valid
           if (cachedData.timestamp && now - cachedData.timestamp < cacheDuration) {
             setEvents(cachedData.events || [])
             setEventGroups(cachedData.eventGroups || [])
@@ -453,7 +382,6 @@ const Home = () => {
             setEventsToday(cachedData.today || [])
             setPassedEvents(cachedData.past || [])
             setLoading(false)
-            // Refresh in background after using cache
             fetchFreshEvents()
             return
           }
@@ -462,7 +390,6 @@ const Home = () => {
         }
       }
 
-      // No valid cache, fetch fresh data
       const result = await fetchFreshEvents()
       if (!result) console.error("Failed to fetch events")
     }
@@ -470,7 +397,6 @@ const Home = () => {
     fetchEvents()
   }, [cacheDuration, fetchFreshEvents])
 
-  // Handle search suggestions
   useEffect(() => {
     const fetchSearchSuggestions = async () => {
       if (searchQuery.trim().length < 2) {
@@ -483,7 +409,7 @@ const Home = () => {
         const searchLower = searchQuery.toLowerCase()
         const suggestions = events
           .filter((event) => event && event.eventName && event.eventName.toLowerCase().includes(searchLower))
-          .slice(0, 5) // Limit to 5 suggestions
+          .slice(0, 5)
           .map((event) => ({
             eventName: event.eventName,
             creatorID: event.creatorID,
@@ -540,338 +466,250 @@ const Home = () => {
   const filteredTodayEvents = filterEvents(eventsToday)
   const filteredPastEvents = filterEvents(pastEvents)
 
+  const hasActiveFilters = filterType || priceFilter
+
   if (isLoading) {
     return (
-      <div className="preloader-container">
-        <div className="preloader-content">
-          <img src="/preloader.gif" alt="Loading..." className="preloader-gif" />
-        </div>
-        <style jsx>{`
-          .preloader-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-          }
-          
-          .preloader-content {
-            text-align: center;
-          }
-          
-          .preloader-gif {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-          }
-        `}</style>
+      <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <img src="/preloader.gif" alt="Loading..." className="w-20 h-20 object-contain" />
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <Head>
         <title>Spotix Event Home</title>
-        <meta
-          name="description"
-          content="Find, book, and attend the best events on your campus. Discover concerts, night parties, workshops, religious events, and more on Spotix."
-        />
-        {/* Open Graph for social media */}
-        <meta property="og:title" content="Spotix | Discover and Book Campus Events" />
-        <meta
-          property="og:description"
-          content="Explore top events in your school – concerts, workshops, parties & more. Powered by Spotix."
-        />
+        <meta name="description" content="Find, book, and attend the best events. Discover concerts, night parties, workshops, religious events, and more on Spotix." />
+        <meta property="og:title" content="Spotix | Discover and Book Events" />
+        <meta property="og:description" content="Explore top events – concerts, workshops, parties & more. Powered by Spotix." />
         <meta property="og:image" content="/meta.png" />
         <meta property="og:url" content="https://spotix.com.ng" />
         <meta property="og:type" content="website" />
-
-        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Spotix | Discover and Book Campus Events" />
-        <meta
-          name="twitter:description"
-          content="Explore top events in your school – concerts, workshops, parties & more. Powered by Spotix."
-        />
+        <meta name="twitter:title" content="Spotix | Discover and Book Events" />
+        <meta name="twitter:description" content="Explore top events – concerts, workshops, parties & more. Powered by Spotix." />
         <meta name="twitter:image" content="/meta.png" />
       </Head>
 
       <UserHeader />
-      <div className="home-container">
-        <div className="home-header">
-          <h1>Welcome{isAuthenticated ? `, ${username}` : ""} to Spotix!</h1>
-          {isAuthenticated ? <FetchWallet /> : <LoginButton />}
+      
+      <main className="flex-1">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-br from-purple-50 via-white to-purple-50 border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                Welcome{isAuthenticated ? `, ${username}` : ""} to Spotix!
+              </h1>
+              <p className="text-lg text-gray-600 mb-6">Discover and book amazing events happening around you</p>
+              {isAuthenticated ? <FetchWallet /> : <LoginButton />}
+            </div>
+
+            {/* Search and Filters */}
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
+                <div className="flex flex-col md:flex-row gap-3">
+                  {/* Search Bar */}
+                  <div className="flex-1 relative">
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <input
+                        type="text"
+                        placeholder="Search events by name or ID..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => setShowSuggestions(searchSuggestions.length > 0)}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                    {showSuggestions && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-10">
+                        {searchSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            className="px-4 py-3 hover:bg-purple-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
+                          >
+                            <p className="font-medium text-gray-900">{suggestion.eventName}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Type Filter */}
+                  <select
+                    value={filterType || ""}
+                    onChange={(e) => setFilterType(e.target.value)}
+                    className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                  >
+                    <option value="">All Types</option>
+                    <option value="Night party">Night Party</option>
+                    <option value="Concert">Concert</option>
+                    <option value="Religious">Religious</option>
+                    <option value="Conference">Conference</option>
+                    <option value="Workshop">Workshop</option>
+                    <option value="Other">Other</option>
+                  </select>
+
+                  {/* Price Filter */}
+                  <select
+                    value={priceFilter || ""}
+                    onChange={(e) => setPriceFilter(e.target.value)}
+                    className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                  >
+                    <option value="">All Prices</option>
+                    <option value="free">Free Events</option>
+                    <option value="paid">Paid Events</option>
+                  </select>
+                </div>
+
+                {/* Active Filters Display */}
+                {hasActiveFilters && (
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    <span className="text-sm text-gray-600">Active filters:</span>
+                    {filterType && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+                        {filterType}
+                        <button onClick={() => setFilterType(null)} className="hover:bg-purple-200 rounded-full p-0.5">
+                          <X size={14} />
+                        </button>
+                      </span>
+                    )}
+                    {priceFilter && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+                        {priceFilter === "free" ? "Free" : "Paid"}
+                        <button onClick={() => setPriceFilter(null)} className="hover:bg-purple-200 rounded-full p-0.5">
+                          <X size={14} />
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="search-filter-container">
-          <div className="search-wrapper">
-            <input
-              type="text"
-              placeholder="Search by Event Name or ID"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setShowSuggestions(searchSuggestions.length > 0)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="search-bar"
-            />
-            {showSuggestions && (
-              <div className="search-suggestions">
-                {searchSuggestions.map((suggestion, index) => (
-                  <div key={index} className="search-suggestion-item" onClick={() => handleSuggestionClick(suggestion)}>
-                    {suggestion.eventName}
-                  </div>
-                ))}
+        {/* Content Section */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Today's Date */}
+          <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: '#6b2fa5' }}>
+                <Clock size={24} className="text-white" />
               </div>
-            )}
+              <div>
+                <p className="text-sm font-medium text-gray-600">Today</p>
+                <p className="text-lg font-bold text-gray-900">{formatTodayDate()}</p>
+              </div>
+            </div>
           </div>
 
-          <select value={filterType || ""} onChange={(e) => setFilterType(e.target.value)} className="filter-dropdown">
-            <option value="">All Types</option>
-            <option value="Night party">Night Party</option>
-            <option value="Concert">Concert</option>
-            <option value="Religious">Religious</option>
-            <option value="Conference">Conference</option>
-            <option value="Workshop">Workshop</option>
-            <option value="Other">Other</option>
-          </select>
-          <select
-            value={priceFilter || ""}
-            onChange={(e) => setPriceFilter(e.target.value)}
-            className="filter-dropdown"
-          >
-            <option value="">All Prices</option>
-            <option value="free">Free Events</option>
-            <option value="paid">Paid Events</option>
-          </select>
-        </div>
+          {/* Events Today */}
+          {eventsToday.length > 0 && (
+            <section className="mb-12">
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-3xl font-bold text-gray-900">Events Today</h2>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-500 text-white animate-pulse">
+                  Live
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {loading ? (
+                  renderSkeletons(4)
+                ) : filteredTodayEvents.length > 0 ? (
+                  filteredTodayEvents.map((event, index) => (
+                    <LazyEventCard
+                      key={event.eventId || `today-${index}`}
+                      event={event}
+                      isToday={true}
+                      onClick={() => navigateToEvent(event.creatorID, event.eventId)}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12">
+                    <p className="text-gray-500">No events happening today match your filters.</p>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
-        {/* Today's Date Block */}
-        <div className="today-date-block">
-          <span className="today-label">Today:</span>
-          <span className="today-date">{formatTodayDate()}</span>
-        </div>
-
-        {/* Events Today Section */}
-        {eventsToday.length > 0 && (
-          <>
-            <h2 className="section-title events-today-title">Events Today</h2>
-            <div className="events-grid">
+          {/* Upcoming Events */}
+          <section className="mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Upcoming Events</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {loading ? (
-                renderSkeletons(4)
-              ) : filteredTodayEvents.length > 0 ? (
-                filteredTodayEvents.map((event, index) => (
+                renderSkeletons(8)
+              ) : filteredUpcomingEvents.length > 0 ? (
+                filteredUpcomingEvents.map((event, index) => (
                   <LazyEventCard
-                    key={event.eventId || `today-${index}`}
+                    key={event.eventId || `upcoming-${index}`}
                     event={event}
-                    isToday={true}
                     onClick={() => navigateToEvent(event.creatorID, event.eventId)}
                   />
                 ))
               ) : (
-                <p className="no-events-message">No events happening today match your filters.</p>
+                <div className="col-span-full text-center py-12">
+                  <p className="text-gray-500">No upcoming events found.</p>
+                </div>
               )}
             </div>
-          </>
-        )}
+          </section>
 
-        <h2 className="section-title">Upcoming Events</h2>
-        <div className="events-grid">
-          {loading ? (
-            renderSkeletons(8)
-          ) : filteredUpcomingEvents.length > 0 ? (
-            filteredUpcomingEvents.map((event, index) => (
-              <LazyEventCard
-                key={event.eventId || `upcoming-${index}`}
-                event={event}
-                onClick={() => navigateToEvent(event.creatorID, event.eventId)}
-              />
-            ))
-          ) : (
-            <p className="no-events-message">No upcoming events found.</p>
+          {/* Event Collections */}
+          {eventGroups.length > 0 && (
+            <section className="mb-12">
+              <h2 className="text-3xl font-bold mb-6" style={{ color: '#6b2fa5' }}>Event Collections</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {loading ? (
+                  renderSkeletons(4)
+                ) : eventGroups.length > 0 ? (
+                  eventGroups.map((eventGroup, index) => (
+                    <EventGroupCard
+                      key={`group-${eventGroup.creatorID}-${eventGroup.eventName}-${index}`}
+                      eventGroup={eventGroup}
+                      onClick={() => navigateToEventGroup(eventGroup)}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12">
+                    <p className="text-gray-500">No event collections found.</p>
+                  </div>
+                )}
+              </div>
+            </section>
           )}
-        </div>
 
-        {/* Event Groups Section */}
-        {eventGroups.length > 0 && (
-          <>
-            <h2 className="section-title event-groups-title">Event Collections</h2>
-            <div className="events-grid">
+          {/* Past Events */}
+          <section>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Past Events</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {loading ? (
                 renderSkeletons(4)
-              ) : eventGroups.length > 0 ? (
-                eventGroups.map((eventGroup, index) => (
-                  <EventGroupCard
-                    key={`group-${eventGroup.creatorID}-${eventGroup.eventName}-${index}`}
-                    eventGroup={eventGroup}
-                    onClick={() => navigateToEventGroup(eventGroup)}
+              ) : filteredPastEvents.length > 0 ? (
+                filteredPastEvents.map((event, index) => (
+                  <LazyEventCard
+                    key={event.eventId || `past-${index}`}
+                    event={event}
+                    isPast={true}
+                    onClick={() => navigateToEvent(event.creatorID, event.eventId)}
                   />
                 ))
               ) : (
-                <p className="no-events-message">No event collections found.</p>
+                <div className="col-span-full text-center py-12">
+                  <p className="text-gray-500">No past events found.</p>
+                </div>
               )}
             </div>
-          </>
-        )}
-
-        <h2 className="section-title past-events-title">Past Events</h2>
-        <div className="events-grid">
-          {loading ? (
-            renderSkeletons(4)
-          ) : filteredPastEvents.length > 0 ? (
-            filteredPastEvents.map((event, index) => (
-              <LazyEventCard
-                key={event.eventId || `past-${index}`}
-                event={event}
-                isPast={true}
-                onClick={() => navigateToEvent(event.creatorID, event.eventId)}
-              />
-            ))
-          ) : (
-            <p className="no-events-message">No past events found.</p>
-          )}
+          </section>
         </div>
-      </div>
+      </main>
 
       <Footer />
-
-      {/* Additional styles for lazy loading and image optimization */}
-      <style>{`
-        .lazy-image-container {
-          position: relative;
-          width: 100%;
-          height: 200px;
-          overflow: hidden;
-          border-radius: 8px;
-        }
-
-        .lazy-image-container img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: opacity 0.3s ease-in-out;
-        }
-
-        .image-placeholder {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #f0f0f0;
-        }
-
-        .image-skeleton {
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-          background-size: 200% 100%;
-          animation: loading 1.5s infinite;
-        }
-
-        .image-error {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #f5f5f5;
-          color: #666;
-          font-size: 14px;
-        }
-
-        .event-card-placeholder {
-          min-height: 350px;
-        }
-
-        @keyframes loading {
-          0% {
-            background-position: -200% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
-        }
-
-        /* Ensure event tags are included in blur effect */
-        .event-card .event-price-tag,
-        .event-card .event-date-tag {
-          position: relative;
-          z-index: 1;
-        }
-
-        /* Performance optimizations */
-        .events-grid {
-          contain: layout style paint;
-        }
-
-        .event-card {
-          contain: layout style paint;
-          will-change: transform;
-        }
-
-        /* Reduce motion for users who prefer it */
-        @media (prefers-reduced-motion: reduce) {
-          .lazy-image-container img,
-          .image-skeleton {
-            animation: none;
-            transition: none;
-          }
-        }
-
-        .event-group-card {
-          position: relative;
-        }
-
-        .event-group-overlay {
-          position: absolute;
-          top: 10px;
-          left: 10px;
-          z-index: 2;
-        }
-
-        .event-group-badge {
-          background: linear-gradient(135deg, #6b2fa5, #8b5cf6);
-          color: white;
-          padding: 4px 8px;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          box-shadow: 0 2px 8px rgba(107, 47, 165, 0.3);
-        }
-
-        .event-groups-title {
-          background: linear-gradient(135deg, #6b2fa5, #8b5cf6);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          position: relative;
-        }
-
-        .event-groups-title::after {
-          content: '';
-          position: absolute;
-          bottom: -5px;
-          left: 0;
-          width: 60px;
-          height: 3px;
-          background: linear-gradient(135deg, #6b2fa5, #8b5cf6);
-          border-radius: 2px;
-        }
-      `}</style>
     </div>
   )
 }

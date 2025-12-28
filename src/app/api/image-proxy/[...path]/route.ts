@@ -1,8 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: { path: string[] } }) {
+export async function GET(
+  request: NextRequest, 
+  { params }: { params: Promise<{ path: string[] }> }
+) {
   try {
-    const path = params.path
+    // Await params before accessing its properties
+    const { path } = await params
+    
     if (!path || path.length === 0) {
       return new NextResponse("Invalid path", { status: 400 })
     }
@@ -31,8 +36,8 @@ export async function GET(request: NextRequest, { params }: { params: { path: st
 
         // Cloudinary transformations for watermarking
         const transformations = [
-        //   "c_fill,w_1200,h_630",
-            "e_shadow:30", // Lighter shadow
+          // "c_fill,w_1200,h_630",
+          "e_shadow:30", // Lighter shadow
           "q_auto,f_auto", // Auto quality and format
         ]
 

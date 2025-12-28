@@ -22,7 +22,7 @@ interface EventType {
   eventVenue: string
   colorCode?: string
   enableColorCode?: boolean
-  enableMaxSize?: boolean
+  enableMaxSize?: booleanfpr
   maxSize?: string
   enableStopDate?: boolean
   stopDate?: string
@@ -113,7 +113,11 @@ export async function generateMetadata({
   }
 }
 
-export default function EventPage() {
-  return <ClientPage />
+export default async function EventPage({
+  params,
+}: {
+  params: Promise<{ creatorId: string; eventId: string }>
+}) {
+  const resolvedParams = await params
+  return <ClientPage params={resolvedParams} />
 }
-  
