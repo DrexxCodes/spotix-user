@@ -11,8 +11,6 @@ import { auth, db } from "../../lib/firebase"
 import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
 
-import "./login.css"
-
 type LoginProps = {}
 
 const Login: React.FC<LoginProps> = () => {
@@ -27,8 +25,6 @@ const Login: React.FC<LoginProps> = () => {
   const [verificationSent, setVerificationSent] = useState(false)
   const [unverifiedUser, setUnverifiedUser] = useState<any>(null)
   const [verificationMessage, setVerificationMessage] = useState("")
-  const [emailFocused, setEmailFocused] = useState(false)
-  const [passwordFocused, setPasswordFocused] = useState(false)
   const [formTouched, setFormTouched] = useState(false)
 
   const router = useRouter()
@@ -191,86 +187,108 @@ const Login: React.FC<LoginProps> = () => {
         <meta property="og:url" content="/login" />
       </Head>
 
-      <div className="fix-login">
-        <div className="auth-container">
-          <div className="auth-form">
-            <div className="auth-header">
-              <img src="/logo.svg" alt="Spotix Logo" className="auth-logo" />
-              <h1>Welcome Back</h1>
-              <p className="auth-subtitle">Sign in to your account to continue</p>
+      <div className="min-h-screen bg-gradient-to-br from-[#6b2fa5] via-purple-600 to-purple-500 flex items-center justify-center p-4 md:p-8">
+        <div className="flex items-center justify-center gap-8 lg:gap-16 w-full max-w-7xl">
+          {/* Login Form */}
+          <div className="bg-white rounded-3xl shadow-2xl border border-white/20 backdrop-blur-lg p-8 md:p-12 w-full max-w-md">
+            <div className="text-center mb-10">
+              <img 
+                src="/logo.svg" 
+                alt="Spotix Logo" 
+                className="w-20 h-20 mx-auto mb-4 rounded-full object-cover shadow-lg shadow-[#6b2fa5]/20"
+              />
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#6b2fa5] to-purple-600 bg-clip-text text-transparent mb-2">
+                Welcome Back
+              </h1>
+              <p className="text-gray-600 text-base">Sign in to your account to continue</p>
             </div>
 
+            {/* Verification Success Message */}
             {verificationMessage && (
-              <div className="success-message verification-message">
-                <CheckCircle size={18} className="message-icon" />
-                <div className="message-content">
-                  <p>{verificationMessage}</p>
+              <div className="flex items-start gap-3 p-4 mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-400 rounded-xl animate-in slide-in-from-top duration-300">
+                <CheckCircle size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-green-800 text-sm font-medium leading-relaxed">{verificationMessage}</p>
                 </div>
-                <button className="dismiss-btn" onClick={() => setVerificationMessage("")} aria-label="Dismiss message">
-                  <X size={18} />
+                <button
+                  onClick={() => setVerificationMessage("")}
+                  className="flex-shrink-0 p-1 hover:bg-green-100 rounded transition-colors"
+                  aria-label="Dismiss message"
+                >
+                  <X size={18} className="text-green-600" />
                 </button>
               </div>
             )}
 
+            {/* Error Message */}
             {error && (
-              <div className="error-message">
-                <AlertCircle size={18} className="message-icon" />
-                <div className="message-content">
-                  <p>{error}</p>
+              <div className="flex items-start gap-3 p-4 mb-6 bg-gradient-to-r from-red-50 to-rose-50 border border-red-400 rounded-xl animate-in slide-in-from-top duration-300">
+                <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-red-800 text-sm font-medium leading-relaxed">{error}</p>
                 </div>
-                <button className="dismiss-btn" onClick={dismissError} aria-label="Dismiss error">
-                  <X size={18} />
+                <button
+                  onClick={dismissError}
+                  className="flex-shrink-0 p-1 hover:bg-red-100 rounded transition-colors"
+                  aria-label="Dismiss error"
+                >
+                  <X size={18} className="text-red-600" />
                 </button>
               </div>
             )}
 
+            {/* Verification Option */}
             {showVerificationOption && (
-              <div className="verification-option">
-                <div className="verification-header">
-                  <Shield size={20} className="verification-icon" />
-                  <h3>Email Verification Required</h3>
+              <div className="p-6 mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-[#6b2fa5] rounded-xl animate-in slide-in-from-top duration-300">
+                <div className="flex items-center gap-3 mb-4">
+                  <Shield size={20} className="text-[#6b2fa5]" />
+                  <h3 className="text-lg font-semibold text-[#6b2fa5]">Email Verification Required</h3>
                 </div>
-                <p>
+                <p className="text-gray-700 text-sm leading-relaxed mb-5">
                   We've sent a verification link to your email address. Please check your inbox and click the link to
                   verify your account.
                 </p>
 
                 <button
-                  className="resend-verification-btn"
                   onClick={handleResendVerification}
                   disabled={sendingVerification || verificationSent}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#6b2fa5] to-purple-600 text-white font-semibold py-3.5 px-5 rounded-xl shadow-lg shadow-[#6b2fa5]/30 hover:shadow-xl hover:shadow-[#6b2fa5]/40 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {sendingVerification ? (
                     <>
-                      <Loader2 size={16} className="loading-icon" />
-                      Sending verification email...
+                      <Loader2 size={18} className="animate-spin" />
+                      <span>Sending verification email...</span>
                     </>
                   ) : verificationSent ? (
                     <>
-                      <CheckCircle size={16} />
-                      Verification email sent!
+                      <CheckCircle size={18} />
+                      <span>Verification email sent!</span>
                     </>
                   ) : (
                     <>
-                      <Mail size={16} />
-                      Resend Verification Email
+                      <Mail size={18} />
+                      <span>Resend Verification Email</span>
                     </>
                   )}
                 </button>
 
                 {verificationSent && (
-                  <div className="verification-sent-message">
-                    <p>✅ Verification email sent successfully! Please check your inbox and spam folder.</p>
+                  <div className="mt-4 p-3 bg-green-100/50 border border-green-300 rounded-lg">
+                    <p className="text-green-800 text-sm font-medium">
+                      ✅ Verification email sent successfully! Please check your inbox and spam folder.
+                    </p>
                   </div>
                 )}
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="login-form">
-              <div className={`input-group ${emailFocused || email ? "focused" : ""}`}>
-                <label htmlFor="email" className="input-label">
-                  <User size={16} />
-                  Email Address
+            {/* Login Form */}
+            <form onSubmit={handleLogin} className="space-y-6 mb-8">
+              {/* Email Input */}
+              <div className="group">
+                <label htmlFor="email" className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                  <User size={16} className="text-gray-500" />
+                  <span>Email Address</span>
                 </label>
                 <input
                   id="email"
@@ -278,82 +296,105 @@ const Login: React.FC<LoginProps> = () => {
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  onFocus={() => setEmailFocused(true)}
-                  onBlur={() => setEmailFocused(false)}
                   required
                   autoComplete="email"
-                  className="form-input"
+                  className="w-full px-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-medium placeholder:text-gray-400 placeholder:font-normal focus:outline-none focus:border-[#6b2fa5] focus:bg-white focus:shadow-lg focus:shadow-[#6b2fa5]/10 focus:-translate-y-0.5 transition-all duration-200"
                 />
               </div>
 
-              <div className={`input-group ${passwordFocused || password ? "focused" : ""}`}>
-                <label htmlFor="password" className="input-label">
-                  <Shield size={16} />
-                  Password
+              {/* Password Input */}
+              <div className="group">
+                <label htmlFor="password" className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                  <Shield size={16} className="text-gray-500" />
+                  <span>Password</span>
                 </label>
-                <div className="password-container">
+                <div className="relative">
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    onFocus={() => setPasswordFocused(true)}
-                    onBlur={() => setPasswordFocused(false)}
                     required
                     autoComplete="current-password"
-                    className="form-input"
                     minLength={6}
+                    className="w-full px-4 py-3.5 pr-12 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-medium placeholder:text-gray-400 placeholder:font-normal focus:outline-none focus:border-[#6b2fa5] focus:bg-white focus:shadow-lg focus:shadow-[#6b2fa5]/10 focus:-translate-y-0.5 transition-all duration-200"
                   />
                   <button
                     type="button"
-                    className="password-toggle"
                     onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-[#6b2fa5] hover:bg-[#6b2fa5]/10 rounded-lg transition-all duration-200"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
               </div>
 
-              <button type="submit" disabled={loggingIn || !email || !password} className="submit-btn">
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loggingIn || !email || !password}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#6b2fa5] to-purple-600 text-white font-bold py-4 px-6 rounded-xl shadow-xl shadow-[#6b2fa5]/30 hover:shadow-2xl hover:shadow-[#6b2fa5]/40 hover:-translate-y-1 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none text-lg"
+              >
                 {loggingIn ? (
                   <>
-                    <Loader2 size={18} className="loading-icon" />
-                    Signing you in...
+                    <Loader2 size={20} className="animate-spin" />
+                    <span>Signing you in...</span>
                   </>
                 ) : (
-                  "Sign In"
+                  <span>Sign In</span>
                 )}
               </button>
             </form>
 
-            <div className="auth-links">
-              <p className="auth-link">
+            {/* Auth Links */}
+            <div className="text-center space-y-3 mb-8">
+              <p className="text-gray-600 text-sm">
                 Don't have an account?{" "}
-                <Link href="/auth/signup" className="link-primary">
+                <Link 
+                  href="/auth/signup" 
+                  className="text-[#6b2fa5] font-semibold hover:text-purple-700 hover:underline transition-colors"
+                >
                   Create account
                 </Link>
               </p>
-              <p className="auth-link">
-                <Link href="/auth/forgot-password" className="link-secondary">
+              <p className="text-gray-600 text-sm">
+                <Link 
+                  href="/auth/forgot-password" 
+                  className="text-gray-600 font-medium hover:text-[#6b2fa5] hover:underline transition-colors"
+                >
                   Forgot your password?
                 </Link>
               </p>
             </div>
 
-            <div className="security-notice">
-              <Shield size={14} />
-              <span>Your information is protected with enterprise-grade security</span>
+            {/* Security Notice */}
+            <div className="flex items-center justify-center gap-2 p-4 bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200 rounded-xl">
+              <Shield size={16} className="text-gray-500" />
+              <span className="text-gray-600 text-xs font-medium">
+                Your information is protected with enterprise-grade security
+              </span>
             </div>
           </div>
 
-          <div className="auth-text">
-            <img src="/logo.svg" alt="Spotix Logo" className="auth-logo" />
-            <h2>
-              Use Spotix to Book That <span id="animated-text">Event</span>
+          {/* Right Side Text - Hidden on Mobile */}
+          <div className="hidden lg:block bg-white/15 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-12 max-w-md text-center">
+            <img 
+              src="/logo.svg" 
+              alt="Spotix Logo" 
+              className="w-24 h-24 mx-auto mb-6 rounded-full object-cover brightness-0 invert drop-shadow-lg"
+            />
+            <h2 className="text-4xl font-bold text-white mb-6 leading-tight">
+              Use Spotix to Book That{" "}
+              <span 
+                id="animated-text" 
+                className="bg-gradient-to-r from-yellow-300 via-yellow-200 to-yellow-100 bg-clip-text text-transparent transition-opacity duration-300"
+              >
+                Event
+              </span>
             </h2>
-            <p className="auth-description">
+            <p className="text-white/90 text-base leading-relaxed">
               Join thousands of event organizers who trust Spotix for seamless event management and booking experiences.
             </p>
           </div>

@@ -48,7 +48,7 @@ const UserHeader: React.FC = () => {
               <Link href="/home">Home</Link>
             </DesktopNavItem>
             <DesktopNavItem>
-              <Link href="/Profile">My Profile</Link>
+              <Link href="/profile">My Profile</Link>
             </DesktopNavItem>
             <DesktopNavItem>
               <Link href="/ticket-history">My Tickets</Link>
@@ -66,7 +66,7 @@ const UserHeader: React.FC = () => {
               <Link href="https://t.me/SpotixNG_bot">Telegram Bot</Link>
             </DesktopNavItem>
             <DesktopNavItem>
-              <Link href="/bookerdashboard">Dashboard</Link>
+              <Link href="https://booker.spotix.com.ng">Dashboard</Link>
             </DesktopNavItem>
           </DesktopNavList>
         </DesktopNav>
@@ -86,7 +86,7 @@ const UserHeader: React.FC = () => {
           </NavItem>
           <NavItem onClick={() => setMenuOpen(false)}>
             <User size={20} />
-            <Link href="/Profile">My Profile</Link>
+            <Link href="/profile">My Profile</Link>
           </NavItem>
           <NavItem onClick={() => setMenuOpen(false)}>
             <CreditCard size={20} />
@@ -94,7 +94,7 @@ const UserHeader: React.FC = () => {
           </NavItem>
           <NavItem onClick={() => setMenuOpen(false)}>
             <ClipboardCheck size={20} />
-            <Link href="/referrals">Referrals</Link>
+            <Link href="/Referrals">Referrals</Link>
           </NavItem>
           <NavItem onClick={() => setMenuOpen(false)}>
             <History size={20} />
@@ -110,7 +110,7 @@ const UserHeader: React.FC = () => {
           </NavItem>
           <NavItem onClick={() => setMenuOpen(false)}>
             <AppWindow size={20} />
-            <Link href="/bookerdashboard">Dashboard</Link>
+            <Link href="https://booker.spotix.com.ng">Dashboard</Link>
           </NavItem>
         </NavList>
 
