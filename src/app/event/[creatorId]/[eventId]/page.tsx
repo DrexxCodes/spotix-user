@@ -22,7 +22,7 @@ interface EventType {
   eventVenue: string
   colorCode?: string
   enableColorCode?: boolean
-  enableMaxSize?: booleanfpr
+  enableMaxSize?: boolean
   maxSize?: string
   enableStopDate?: boolean
   stopDate?: string
