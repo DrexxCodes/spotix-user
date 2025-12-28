@@ -1,5 +1,6 @@
 "use client"
 
+import { Suspense } from "react"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { CheckCircle, XCircle, Loader2, ArrowRight, Ticket, Download } from "lucide-react"
@@ -35,7 +36,8 @@ interface TicketData {
   referralUsed: boolean
 }
 
-export default function PaymentSuccessPage() {
+// Separate component that uses useSearchParams
+function PaymentSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
@@ -122,68 +124,60 @@ export default function PaymentSuccessPage() {
 
   if (loading) {
     return (
-      <>
-        <UserHeader />
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-            <Loader2 className="w-16 h-16 animate-spin text-purple-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Processing Your Payment</h2>
-            <p className="text-gray-600">Please wait while we generate your ticket...</p>
-            <div className="mt-6 space-y-2">
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"></div>
-                <span>Verifying payment</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse delay-100"></div>
-                <span>Generating ticket</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse delay-200"></div>
-                <span>Sending confirmation</span>
-              </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <Loader2 className="w-16 h-16 animate-spin text-purple-600 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Processing Your Payment</h2>
+          <p className="text-gray-600">Please wait while we generate your ticket...</p>
+          <div className="mt-6 space-y-2">
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"></div>
+              <span>Verifying payment</span>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse delay-100"></div>
+              <span>Generating ticket</span>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse delay-200"></div>
+              <span>Sending confirmation</span>
             </div>
           </div>
         </div>
-        <Footer />
-      </>
+      </div>
     )
   }
 
   if (error) {
     return (
-      <>
-        <UserHeader />
-        <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                <XCircle className="w-10 h-10 text-red-600" />
-              </div>
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <XCircle className="w-10 h-10 text-red-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-4">Payment Issue</h2>
-            <p className="text-gray-600 text-center mb-6">{error}</p>
-            <div className="space-y-3">
-              <button
-                onClick={() => window.location.reload()}
-                className="w-full py-3 px-6 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition-colors"
-              >
-                Try Again
-              </button>
-              <button
-                onClick={handleGoHome}
-                className="w-full py-3 px-6 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
-              >
-                Back to Home
-              </button>
-            </div>
-            <p className="text-center text-sm text-gray-500 mt-6">
-              If you were charged, please contact support with reference: {searchParams.get("reference")}
-            </p>
           </div>
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-4">Payment Issue</h2>
+          <p className="text-gray-600 text-center mb-6">{error}</p>
+          <div className="space-y-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full py-3 px-6 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={handleGoHome}
+              className="w-full py-3 px-6 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              Back to Home
+            </button>
+          </div>
+          <p className="text-center text-sm text-gray-500 mt-6">
+            If you were charged, please contact support with reference: {searchParams.get("reference")}
+          </p>
         </div>
-        <Footer />
-      </>
+      </div>
     )
   }
 
@@ -193,8 +187,6 @@ export default function PaymentSuccessPage() {
 
   return (
     <>
-      <UserHeader />
-      
       {/* Confetti Effect */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
@@ -383,8 +375,6 @@ export default function PaymentSuccessPage() {
         </div>
       </div>
 
-      <Footer />
-
       <style jsx>{`
         @keyframes confetti-fall {
           to {
@@ -413,6 +403,32 @@ export default function PaymentSuccessPage() {
           animation: bounce 1s ease-in-out infinite;
         }
       `}</style>
+    </>
+  )
+}
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+        <Loader2 className="w-16 h-16 animate-spin text-purple-600 mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading...</h2>
+        <p className="text-gray-600">Please wait</p>
+      </div>
+    </div>
+  )
+}
+
+// Main page component with Suspense wrapper
+export default function PaymentSuccessPage() {
+  return (
+    <>
+      <UserHeader />
+      <Suspense fallback={<LoadingFallback />}>
+        <PaymentSuccessContent />
+      </Suspense>
+      <Footer />
     </>
   )
 }
