@@ -70,28 +70,21 @@ const useLazyLoading = (ref: React.RefObject<HTMLElement | null>, threshold = 0.
   return isVisible
 }
 
-// Lazy Image Component with proxy support
+// Lazy Image Component
 const LazyImage: React.FC<{
   src: string
   alt: string
   className?: string
   eventName?: string
-  useProxy?: boolean
-}> = ({ src, alt, className, eventName, useProxy = false }) => {
+}> = ({ src, alt, className, eventName }) => {
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
   const imgRef = useRef<HTMLDivElement>(null)
   const isVisible = useLazyLoading(imgRef)
 
-const getImageSrc = () => {
-  if (!useProxy || !src || src.includes("/placeholder.svg")) {
+  const getImageSrc = () => {
     return src || "/placeholder.svg"
   }
-
-  const encodedUrl = encodeURIComponent(src)
-  const encodedName = eventName ? encodeURIComponent(eventName) : ""
-  return `/api/image-proxy/event-image?url=${encodedUrl}&name=${encodedName}`
-}
 
 
   return (
@@ -172,7 +165,6 @@ const EventVariationCard: React.FC<{
           src={event.eventImage || "/placeholder.svg"}
           alt={event.eventName}
           eventName={event.eventName}
-          useProxy={true}
           className="w-full h-48 object-cover"
         />
         <div className="variation-overlay absolute top-2 right-2">
@@ -394,7 +386,6 @@ const EventGroupClient: React.FC<Props> = ({ params }) => {
                 alt={eventGroupData.name}
                 className="w-full h-full object-cover"
                 eventName={eventGroupData.name}
-                useProxy={true}
               />
               <div className="hero-overlay absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
             </div>

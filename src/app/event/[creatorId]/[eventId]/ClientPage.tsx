@@ -17,11 +17,13 @@ import BuyTicketDialog from "./buy-ticket-dialog"
 import MerchSection from "./merch-section"
 import { formatNumber } from "@/utils/formatter"
 import { ReportModal } from "./report-modal"
+import { ImageCarousel } from "./image-carousel"
 
 interface EventType {
   id: string
   eventName: string
   eventImage: string
+  eventImages: string[]
   eventDate: string
   eventEndDate: string
   eventStart: string
@@ -61,15 +63,9 @@ const LazyImage: React.FC<{
   const [showFullscreen, setShowFullscreen] = useState(false)
   const imgRef = useRef<HTMLDivElement>(null)
 
-const getImageSrc = () => {
-  if (!useProxy || !src || src.includes("/placeholder.svg")) {
+  const getImageSrc = () => {
     return src || "/placeholder.svg"
   }
-
-  const encodedUrl = encodeURIComponent(src)
-  const encodedName = eventName ? encodeURIComponent(eventName) : ""
-  return `/api/image-proxy/event-image?url=${encodedUrl}&name=${encodedName}`
-}
 
   return (
     <>
@@ -710,13 +706,10 @@ export default function ClientPage({
 
           {/* Event Image */}
           <div className="w-full h-64 md:h-80 mb-8 rounded-lg overflow-hidden shadow-lg">
-            <LazyImage
-              src={eventData.eventImage || "/placeholder.svg"}
-              alt={eventData.eventName}
-              className="w-full h-full"
+            <ImageCarousel
+              mainImage={eventData.eventImage || "/placeholder.svg"}
+              additionalImages={eventData.eventImages || []}
               eventName={eventData.eventName}
-              useProxy={true}
-              showFullscreenIcon={true}
             />
           </div>
 

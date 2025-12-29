@@ -18,9 +18,17 @@ const nextConfig: NextConfig = {
         hostname: 'lh3.googleusercontent.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'blogger.googleusercontent.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.postimg.cc',
+        pathname: '/**',
+      },
     ],
-    // Alternative: if you need to support multiple Cloudinary accounts or other domains
-    // domains: ['res.cloudinary.com', 'firebasestorage.googleapis.com'],
   },
 };
 

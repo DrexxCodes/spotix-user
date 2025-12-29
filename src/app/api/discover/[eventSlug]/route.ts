@@ -33,36 +33,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const eventData = eventDoc.data()
 
-    const proxiedImageUrl = eventData?.eventImage
-    ? `/api/image-proxy/event-image?url=${encodeURIComponent(eventData.eventImage)}&name=${encodeURIComponent(eventData.eventName || "Event")}`
-    : `/placeholder.svg`
-
-    const optimizedEventData = {
-      name: eventData?.eventName || "Spotix Event",
-      description: eventData?.eventDescription || "Join us for an amazing event on Spotix!",
-      image: proxiedImageUrl,
-      originalImage: eventData?.eventImage || "/community-event.png",
-      date: eventData?.eventDate,
-      location: eventData?.eventVenue,
-      price: eventData?.isFree ? "Free" : eventData?.ticketPrices?.[0]?.price || "Paid",
-      category: eventData?.eventType,
-      organizer: eventData?.bookerName,
-      capacity: eventData?.maxSize,
-      tags: eventData?.tags || [],
-      // Additional fields for better SEO
-      startTime: eventData?.eventStart,
-      endTime: eventData?.eventEnd,
-      endDate: eventData?.eventEndDate,
-      ticketPrices: eventData?.ticketPrices || [],
-      isVerified: eventData?.isVerified || false,
-      structuredData: {
-        "@context": "https://schema.org",
-        "@type": "Event",
-        name: eventData?.eventName,
-        description: eventData?.eventDescription,
-        image: proxiedImageUrl,
-        startDate: eventData?.eventDate,
-        endDate: eventData?.eventEndDate,
+   const optimizedEventData = {
+  name: eventData?.eventName || "Spotix Event",
+  description: eventData?.eventDescription || "Join us for an amazing event on Spotix!",
+  image: eventData?.eventImage || "/community-event.png",
+  originalImage: eventData?.eventImage || "/community-event.png",
+  date: eventData?.eventDate,
+  location: eventData?.eventVenue,
+  price: eventData?.isFree ? "Free" : eventData?.ticketPrices?.[0]?.price || "Paid",
+  category: eventData?.eventType,
+  organizer: eventData?.bookerName,
+  capacity: eventData?.maxSize,
+  tags: eventData?.tags || [],
+  // Additional fields for better SEO
+  startTime: eventData?.eventStart,
+  endTime: eventData?.eventEnd,
+  endDate: eventData?.eventEndDate,
+  ticketPrices: eventData?.ticketPrices || [],
+  isVerified: eventData?.isVerified || false,
+  structuredData: {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: eventData?.eventName,
+    description: eventData?.eventDescription,
+    image: eventData?.eventImage || "/community-event.png",
+    startDate: eventData?.eventDate,
+    endDate: eventData?.eventEndDate,
         location: {
           "@type": "Place",
           name: eventData?.eventVenue,

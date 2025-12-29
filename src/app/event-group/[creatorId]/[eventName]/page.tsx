@@ -23,10 +23,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (collectionDoc.exists()) {
       const data = collectionDoc.data()
 
-      // Create proxied image URL for OG tags
-      const imageUrl = data.image
-       ? `/api/image-proxy/event-image?url=${encodeURIComponent(data.image)}&name=${encodeURIComponent(data.name)}`
-        : `/placeholder.svg?height=630&width=1200&query=event collection`
+      // Use original image URL directly
+      const imageUrl = data.image || "/placeholder.svg?height=630&width=1200&query=event collection"
 
       return {
         title: `${data.name} - Event Collection | Spotix`,
