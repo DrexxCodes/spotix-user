@@ -61,17 +61,15 @@ const LazyImage: React.FC<{
   const [showFullscreen, setShowFullscreen] = useState(false)
   const imgRef = useRef<HTMLDivElement>(null)
 
-  const getImageSrc = () => {
-    if (!useProxy || !src || src.includes("/placeholder.svg")) {
-      return src || "/placeholder.svg"
-    }
-
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
-    const encodedUrl = encodeURIComponent(src)
-    const encodedName = eventName ? encodeURIComponent(eventName) : ""
-
-    return `${baseUrl}/api/image-proxy/event-image?url=${encodedUrl}&name=${encodedName}`
+const getImageSrc = () => {
+  if (!useProxy || !src || src.includes("/placeholder.svg")) {
+    return src || "/placeholder.svg"
   }
+
+  const encodedUrl = encodeURIComponent(src)
+  const encodedName = eventName ? encodeURIComponent(eventName) : ""
+  return `/api/image-proxy/event-image?url=${encodedUrl}&name=${encodedName}`
+}
 
   return (
     <>

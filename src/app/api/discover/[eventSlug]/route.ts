@@ -33,10 +33,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const eventData = eventDoc.data()
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://spotix.vercel.app"
     const proxiedImageUrl = eventData?.eventImage
-      ? `${baseUrl}/api/image-proxy/event-image?url=${encodeURIComponent(eventData.eventImage)}&name=${encodeURIComponent(eventData.eventName || "Event")}`
-      : `${baseUrl}/placeholder.svg`
+    ? `/api/image-proxy/event-image?url=${encodeURIComponent(eventData.eventImage)}&name=${encodeURIComponent(eventData.eventName || "Event")}`
+    : `/placeholder.svg`
 
     const optimizedEventData = {
       name: eventData?.eventName || "Spotix Event",

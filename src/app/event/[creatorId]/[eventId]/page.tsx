@@ -63,11 +63,10 @@ export async function generateMetadata({
       ? eventData.eventDescription.substring(0, 160)
       : `Join us for ${eventData.eventName} on ${new Date(eventData.eventDate).toLocaleDateString()}. ${eventData.isFree ? "Free event" : "Tickets available now"}!`
 
-    // Create proxied image URL
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://spotix.vercel.app"
+// Create proxied image URL
     const proxiedImageUrl = eventData.eventImage
-      ? `${baseUrl}/api/image-proxy/event-image?url=${encodeURIComponent(eventData.eventImage)}&name=${encodeURIComponent(eventData.eventName)}`
-      : `${baseUrl}/placeholder.svg`
+    ? `/api/image-proxy/event-image?url=${encodeURIComponent(eventData.eventImage)}&name=${encodeURIComponent(eventData.eventName)}`
+    : `/placeholder.svg`
 
     return {
       title: `${eventData.eventName} - Spotix`,

@@ -22,12 +22,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (collectionDoc.exists()) {
       const data = collectionDoc.data()
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://spotix.vercel.app"
 
       // Create proxied image URL for OG tags
       const imageUrl = data.image
-        ? `${baseUrl}/api/image-proxy/event-image?url=${encodeURIComponent(data.image)}&name=${encodeURIComponent(data.name)}`
-        : `${baseUrl}/placeholder.svg?height=630&width=1200&query=event collection`
+       ? `/api/image-proxy/event-image?url=${encodeURIComponent(data.image)}&name=${encodeURIComponent(data.name)}`
+        : `/placeholder.svg?height=630&width=1200&query=event collection`
 
       return {
         title: `${data.name} - Event Collection | Spotix`,
