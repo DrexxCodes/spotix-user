@@ -60,9 +60,6 @@ const UserHeader: React.FC = () => {
               <Link href="/wallet-history">Wallet History</Link>
             </DesktopNavItem>
             <DesktopNavItem>
-              <Link href="/bookerdashboard">Auth Key</Link>
-            </DesktopNavItem>
-            <DesktopNavItem>
               <Link href="https://t.me/SpotixNG_bot">Telegram Bot</Link>
             </DesktopNavItem>
             <DesktopNavItem>
@@ -99,10 +96,6 @@ const UserHeader: React.FC = () => {
           <NavItem onClick={() => setMenuOpen(false)}>
             <History size={20} />
             <Link href="/wallet-history">Wallet History</Link>
-          </NavItem>
-          <NavItem onClick={() => setMenuOpen(false)}>
-            <Key size={20} />
-            <Link href="/user-v-auth">Auth Key</Link>
           </NavItem>
           <NavItem onClick={() => setMenuOpen(false)}>
             <Bot size={20} />

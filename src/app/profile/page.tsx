@@ -10,6 +10,7 @@ import Footer from "@/components/footer"
 import { uploadImage } from "@/utils/imageUploader"
 import { Eye, EyeOff, AlertCircle, CheckCircle, Users, Copy, Loader2 } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
 interface UserProfile {
   uid: string
@@ -1124,13 +1125,14 @@ const Profile = () => {
           {/* Booker Status Section */}
           {!user.isBooker && (
             <div className="bg-white rounded-lg shadow-md p-8">
-              <button
-                type="button"
-                onClick={handleBookerStatusClick}
-                className="w-full px-6 py-4 bg-gradient-to-r from-[#6b2fa5] to-[#8b4fc5] text-white rounded-lg hover:from-[#5a2789] hover:to-[#7a3fb5] transition-all font-bold text-lg shadow-lg"
-              >
+              <Link href="/booker-confirm" className="w-full">
+                <button
+                 type="button"
+                  className="w-full px-6 py-4 bg-gradient-to-r from-[#6b2fa5] to-[#8b4fc5] text-white rounded-lg hover:from-[#5a2789] hover:to-[#7a3fb5] transition-all font-bold text-lg shadow-lg"
+                >
                 Become a Booker
               </button>
+            </Link>
             </div>
           )}
 

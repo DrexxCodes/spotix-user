@@ -6,10 +6,8 @@ import Head from "next/head"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, AlertCircle, Mail, Loader2, CheckCircle, Shield, User, X } from "lucide-react"
-
-import { auth, db } from "../../lib/firebase"
+import { auth } from "../../lib/firebase"
 import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
-import { doc, getDoc, updateDoc } from "firebase/firestore"
 
 type LoginProps = {}
 
@@ -52,7 +50,7 @@ const Login: React.FC<LoginProps> = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get("verified") === "true") {
-      setVerificationMessage("Your email has been verified successfully! You can now sign in.")
+      setVerificationMessage("Your account has been created successfully! Please check your email to verify your account before logging in.")
 
       const timer = setTimeout(() => {
         setVerificationMessage("")
@@ -72,31 +70,6 @@ const Login: React.FC<LoginProps> = () => {
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
-  }
-
-  const getUserFriendlyError = (errorCode: string): string => {
-    switch (errorCode) {
-      case "auth/user-not-found":
-      case "auth/wrong-password":
-      case "auth/invalid-email":
-      case "auth/invalid-credential":
-      case "auth/user-disabled":
-        return "Incorrect email or password"
-      case "auth/too-many-requests":
-        return "Too many failed attempts. Please wait and try again"
-      case "auth/network-request-failed":
-        return "Please check your internet connection and try again"
-      case "auth/weak-password":
-        return "Password is too weak. Please use a stronger password"
-      case "auth/email-already-in-use":
-        return "An account with this email already exists"
-      case "auth/operation-not-allowed":
-        return "This sign-in method is not enabled. Please contact support"
-      case "auth/account-exists-with-different-credential":
-        return "An account already exists with this email using a different sign-in method"
-      default:
-        return "Unable to sign in. Please try again"
-    }
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -120,6 +93,7 @@ const Login: React.FC<LoginProps> = () => {
     }
 
     try {
+      // First, sign in with Firebase to check email verification
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
 
@@ -131,14 +105,30 @@ const Login: React.FC<LoginProps> = () => {
         return
       }
 
-      // Check if user profile exists in Firestore
-      const userDoc = await getDoc(doc(db, "users", user.uid))
-      if (userDoc.exists()) {
-        const userData = userDoc.data()
-        // Update last login
-        await updateDoc(doc(db, "users", user.uid), {
-          lastLogin: new Date().toISOString(),
-        })
+      // Call API route for login to get user data
+      const response = await fetch("/api/v1/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "login",
+          email,
+          password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.message || "Unable to sign in. Please try again")
+        setLoggingIn(false)
+        return
+      }
+
+      // Store user data in localStorage or context (optional)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("spotix_user", JSON.stringify(data.user))
       }
 
       setEmail("")
@@ -146,7 +136,20 @@ const Login: React.FC<LoginProps> = () => {
       router.push("/home")
     } catch (error: any) {
       console.error("Login error:", error)
-      setError(getUserFriendlyError(error.code))
+      
+      // Handle Firebase Auth errors
+      let errorMessage = "Unable to sign in. Please try again"
+      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+        errorMessage = "Incorrect email or password"
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Too many failed attempts. Please wait and try again"
+      } else if (error.code === "auth/network-request-failed") {
+        errorMessage = "Please check your internet connection and try again"
+      } else if (error.code === "auth/user-disabled") {
+        errorMessage = "This account has been disabled"
+      }
+      
+      setError(errorMessage)
       setLoggingIn(false)
     }
   }
@@ -174,6 +177,14 @@ const Login: React.FC<LoginProps> = () => {
   const dismissError = () => {
     setError("")
     setShowVerificationOption(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#6b2fa5] via-purple-600 to-purple-500 flex items-center justify-center">
+        <Loader2 size={48} className="animate-spin text-white" />
+      </div>
+    )
   }
 
   return (
@@ -383,7 +394,7 @@ const Login: React.FC<LoginProps> = () => {
             <img 
               src="/logo.svg" 
               alt="Spotix Logo" 
-              className="w-24 h-24 mx-auto mb-6 rounded-full object-cover brightness-0 invert drop-shadow-lg"
+              className="w-24 h-24 mx-auto mb-6 rounded-full object-cover drop-shadow-lg"
             />
             <h2 className="text-4xl font-bold text-white mb-6 leading-tight">
               Use Spotix to Book That{" "}
