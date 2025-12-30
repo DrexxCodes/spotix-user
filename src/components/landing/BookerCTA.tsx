@@ -227,7 +227,7 @@ const BookerCTA = () => {
                 {/* Main Multi-Device Image - Optimized for all screen sizes */}
                 <div className="relative w-full" style={{ aspectRatio: '1/1' }}>
                   <Image
-                    src="/BK.PNG"
+                    src="/BK.png"
                     alt="Spotix Booker Dashboard - Multi-Device View"
                     fill
                     className="object-contain transition-transform duration-700"
