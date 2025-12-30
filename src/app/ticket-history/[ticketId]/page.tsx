@@ -151,7 +151,7 @@ export default function TicketHistoryInfo() {
 
         setLoading(false)
       } catch (err) {
-        console.error("[v0] Error fetching ticket:", err)
+        console.error("  Error fetching ticket:", err)
         setError("Failed to load ticket details")
         setLoading(false)
       }
@@ -185,7 +185,7 @@ export default function TicketHistoryInfo() {
       link.download = `ticket-${ticketDetails.ticketReference}.png`
       link.click()
     } catch (error) {
-      console.error("[v0] Error downloading ticket:", error)
+      console.error("  Error downloading ticket:", error)
       alert("Failed to download ticket")
     } finally {
       setIsDownloading(false)
@@ -211,7 +211,7 @@ export default function TicketHistoryInfo() {
 
       window.open(calendarUrl, "_blank")
     } catch (error) {
-      console.error("[v0] Error adding to calendar:", error)
+      console.error("  Error adding to calendar:", error)
       alert("Failed to add event to calendar")
     }
   }

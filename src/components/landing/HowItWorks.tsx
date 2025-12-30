@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { CheckCircle, Calendar, Ticket, ArrowRight, Sparkles } from "lucide-react"
+import Link from "next/link"
 
 const HowItWorks = () => {
   const [activeStep, setActiveStep] = useState<number | null>(null)
@@ -54,7 +55,7 @@ const HowItWorks = () => {
                 newState[index] = true
                 return newState
               })
-            }, index * 200) // Stagger the animations
+            }, index * 200)
           }
         })
       },
@@ -74,11 +75,12 @@ const HowItWorks = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-b from-white via-purple-50/20 to-white"
+      className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-white"
     >
-      {/* Decorative background elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl" />
+      {/* Light decorative background elements - removed opacity to prevent dark effect */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-purple-100/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-100/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-purple-50/40 via-pink-50/40 to-blue-50/40 rounded-full blur-3xl pointer-events-none" />
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section Header */}
@@ -99,8 +101,8 @@ const HowItWorks = () => {
 
         {/* Steps Container */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 relative">
-          {/* Connection Lines (Desktop) */}
-          <div className="hidden md:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-green-200 via-purple-200 to-blue-200 -z-10" style={{ width: 'calc(100% - 12rem)', left: '6rem' }} />
+          {/* Connection Lines (Desktop) - Lighter color */}
+          <div className="hidden md:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-green-200/60 via-purple-200/60 to-blue-200/60" style={{ width: 'calc(100% - 12rem)', left: '6rem' }} />
           
           {steps.map((step, index) => {
             const IconComponent = step.icon
@@ -171,10 +173,10 @@ const HowItWorks = () => {
                   </div>
 
                   {/* Decorative Corner Elements */}
-                  <div className="absolute top-4 right-4 w-8 h-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <div className="absolute top-4 right-4 w-8 h-8 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
                     <div className={`absolute inset-0 bg-gradient-to-br ${step.color} rounded-full`} />
                   </div>
-                  <div className="absolute bottom-4 left-4 w-12 h-12 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <div className="absolute bottom-4 left-4 w-12 h-12 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
                     <div className={`absolute inset-0 bg-gradient-to-br ${step.color} rounded-full`} />
                   </div>
                 </div>
@@ -203,13 +205,15 @@ const HowItWorks = () => {
           <p className="text-lg text-gray-600 mb-6">
             Ready to discover amazing events?
           </p>
-          <button className="group relative px-10 py-4 bg-gradient-to-r from-[#6b2fa5] to-purple-600 text-white rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/50 overflow-hidden">
-            <span className="relative z-10 flex items-center gap-2">
-              Get Started Now
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          </button>
+          <Link href={"/home"}>
+            <button className="group relative px-10 py-4 bg-gradient-to-r from-[#6b2fa5] to-purple-600 text-white rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/50 overflow-hidden">
+              <span className="relative z-10 flex items-center gap-2">
+                Get Started Now
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </button>
+          </Link>
         </div>
       </div>
     </section>

@@ -96,7 +96,7 @@ export default function RefundTrack() {
 
       setRefunds(refundsList)
     } catch (err) {
-      console.error("[v0] Error fetching refunds:", err)
+      console.error("  Error fetching refunds:", err)
       setError("Failed to load refund history. Please try again.")
     } finally {
       setLoading(false)

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, DollarSign, BarChart, ArrowRight, Sparkles, TrendingUp } from "lucide-react"
+import { Calendar, DollarSign, BarChart, ArrowRight, Sparkles, TrendingUp, Zap } from "lucide-react"
 
 const BookerCTA = () => {
   const [isInView, setIsInView] = useState(false)
@@ -88,14 +88,14 @@ const BookerCTA = () => {
       className="relative py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-900 via-[#6b2fa5] to-purple-800 overflow-hidden"
     >
       {/* Animated Background Elements */}
-      <div className="absolute inset-0 opacity-10">
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDuration: "4s" }} />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-300 rounded-full blur-3xl animate-pulse" style={{ animationDuration: "5s", animationDelay: "1s" }} />
         <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-cyan-300 rounded-full blur-3xl animate-pulse" style={{ animationDuration: "6s", animationDelay: "2s" }} />
       </div>
 
       {/* Decorative Grid Pattern */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute inset-0" style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
           backgroundSize: '50px 50px'
@@ -103,7 +103,7 @@ const BookerCTA = () => {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Content Side */}
           <div
             ref={contentRef}
@@ -113,7 +113,6 @@ const BookerCTA = () => {
           >
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
-              <Sparkles className="w-4 h-4 text-yellow-300" />
               <span className="text-sm font-semibold text-white">For Event Organizers</span>
             </div>
 
@@ -206,43 +205,70 @@ const BookerCTA = () => {
             </div>
           </div>
 
-          {/* Image Side */}
+          {/* Image Side - Multi-Device Showcase */}
           <div
             ref={imageRef}
             className={`relative transition-all duration-1000 ${
               imageInView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12"
             }`}
           >
-            {/* Decorative Elements */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-yellow-300/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: "3s" }} />
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-pink-300/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: "4s", animationDelay: "1s" }} />
+            {/* Decorative Background Glows */}
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-yellow-300/20 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDuration: "3s" }} />
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-pink-300/20 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDuration: "4s", animationDelay: "1s" }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-300/10 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Image Container */}
+            {/* Main Image Container */}
             <div className="relative group">
-              {/* Glowing Border */}
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-300 via-pink-300 to-purple-300 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
+              {/* Enhanced Glowing Border Effect */}
+              <div className="absolute -inset-4 bg-gradient-to-br from-yellow-300 via-pink-300 to-purple-300 rounded-3xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-500 pointer-events-none" />
               
-              {/* Image */}
-              <div className="relative rounded-3xl overflow-hidden border-4 border-white/20 shadow-2xl">
-                <div className="relative aspect-square">
+              {/* Image Wrapper with Better Responsive Sizing */}
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-700 group-hover:scale-[1.02] group-hover:-rotate-1">
+                {/* Main Multi-Device Image - Optimized for all screen sizes */}
+                <div className="relative w-full" style={{ aspectRatio: '1/1' }}>
                   <Image
-                    src="/BookerSS.png"
-                    alt="Booker Dashboard"
+                    src="/BK.PNG"
+                    alt="Spotix Booker Dashboard - Multi-Device View"
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-contain transition-transform duration-700"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 50vw"
+                    priority
                   />
-                  {/* Overlay Gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#6b2fa5]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                </div>
+
+                {/* Subtle Gradient Overlay - Only on hover and very light */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#6b2fa5]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+              </div>
+
+              {/* Floating Info Badges */}
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10">
+                {/* Main Badge */}
+                <div className="px-6 py-3 bg-white rounded-full shadow-2xl flex items-center gap-2 group-hover:scale-110 transition-transform duration-300">
+                  <Zap className="w-5 h-5 text-yellow-500" />
+                  <span className="font-bold text-gray-800">All Devices</span>
                 </div>
               </div>
 
-              {/* Floating Badge */}
-              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-white rounded-full shadow-2xl flex items-center gap-2 group-hover:scale-110 transition-transform duration-300">
-                <TrendingUp className="w-5 h-5 text-green-500" />
-                <span className="font-bold text-gray-800">Dashboard Preview</span>
+              {/* Device Count Indicator - Top Right */}
+              <div className="absolute -top-4 -right-4 px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full shadow-xl flex items-center gap-2 group-hover:scale-110 transition-transform duration-300">
+                <div className="flex -space-x-2">
+                  <div className="w-6 h-6 rounded-full bg-white border-2 border-green-400 flex items-center justify-center">
+                    <span className="text-xs">💻</span>
+                  </div>
+                  <div className="w-6 h-6 rounded-full bg-white border-2 border-green-400 flex items-center justify-center">
+                    <span className="text-xs">📱</span>
+                  </div>
+                  <div className="w-6 h-6 rounded-full bg-white border-2 border-green-400 flex items-center justify-center">
+                    <span className="text-xs">🔳</span>
+                  </div>
+                </div>
+                <span className="text-white font-bold text-sm whitespace-nowrap">Responsive</span>
               </div>
             </div>
+
+            {/* Additional Decorative Elements */}
+            <div className="absolute top-1/4 -left-8 w-16 h-16 border-4 border-yellow-300/30 rounded-full animate-spin pointer-events-none" style={{ animationDuration: "20s" }} />
+            <div className="absolute bottom-1/4 -right-8 w-12 h-12 border-4 border-pink-300/30 rounded-full animate-spin pointer-events-none" style={{ animationDuration: "15s", animationDirection: "reverse" }} />
           </div>
         </div>
       </div>

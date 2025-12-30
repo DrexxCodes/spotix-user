@@ -10,6 +10,7 @@ import HowItWorks from "@/components/landing/HowItWorks"
 import Features from "@/components/landing/Features"
 import Creators from "@/components/landing/Creators"
 import BookerCTA from "@/components/landing/BookerCTA"
+import Newsletter from "@/components/landing/News"
 import {Footer} from "@/components/landing/footer"
 
 export default function LandingPage() {
@@ -55,6 +56,9 @@ export default function LandingPage() {
 
         {/* Booker CTA Section */}
         <BookerCTA />
+
+        {/* Newsletter Section */}
+        <Newsletter />
 
         {/* Footer */}
         <Footer />

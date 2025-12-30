@@ -121,7 +121,7 @@ export default function Refund() {
       setTickets(ticketsList)
       setLoading(false)
     } catch (error) {
-      console.error("[v0] Error fetching tickets:", error)
+      console.error("  Error fetching tickets:", error)
       setLoading(false)
     }
   }
@@ -256,7 +256,7 @@ export default function Refund() {
       setSubmitSuccess(true)
       setShowRefundForm(false)
     } catch (error) {
-      console.error("[v0] Error submitting refund:", error)
+      console.error("  Error submitting refund:", error)
       alert("Failed to submit refund request. Please try again.")
     } finally {
       setSubmitting(false)

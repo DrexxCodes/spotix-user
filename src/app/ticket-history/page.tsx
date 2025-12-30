@@ -92,7 +92,7 @@ export default function TicketHistory() {
       localStorage.setItem(CACHE_KEY, JSON.stringify(ticketsList))
       setLoading(false)
     } catch (error) {
-      console.error("[v0] Error fetching ticket history:", error)
+      console.error("  Error fetching ticket history:", error)
       setLoading(false)
     } finally {
       setRefreshing(false)

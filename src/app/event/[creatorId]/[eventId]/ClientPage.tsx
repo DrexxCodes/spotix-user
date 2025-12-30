@@ -539,7 +539,7 @@ export default function ClientPage({
     }
 
     sessionStorage.setItem("spotix_payment_data", JSON.stringify(paymentData))
-    console.log("[v0] Payment data stored:", paymentData)
+    console.log("  Payment data stored:", paymentData)
 
     // Navigate to payment page
     router.push("/payment")

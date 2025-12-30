@@ -249,11 +249,11 @@ const EventGroupClient: React.FC<Props> = ({ params }) => {
           if (testDoc.exists()) {
             collectionDoc = testDoc
             usedEventName = nameVariation
-            console.log("[v0] Found event collection with name variation:", nameVariation)
+            console.log("  Found event collection with name variation:", nameVariation)
             break
           }
         } catch (err) {
-          console.log("[v0] Failed to find collection with name:", nameVariation)
+          console.log("  Failed to find collection with name:", nameVariation)
           // Continue to next variation
         }
       }

@@ -66,12 +66,12 @@ const Creators = () => {
     <section
       ref={sectionRef}
       id="creators"
-      className="relative py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-purple-50/30 to-white overflow-hidden"
+      className="relative py-24 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden"
     >
-      {/* Decorative Background Elements */}
-      <div className="absolute top-20 left-0 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-purple-200/10 to-pink-200/10 rounded-full blur-3xl" />
+      {/* Decorative Background Elements - Much lighter */}
+      <div className="absolute top-20 left-0 w-96 h-96 bg-purple-100/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-100/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-purple-50/40 to-pink-50/40 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section Header */}
@@ -106,23 +106,23 @@ const Creators = () => {
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              <div className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden">
-                {/* Gradient Border Effect */}
-                <div className="absolute inset-0 bg-[#6b2fa5] opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
+              <div className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-purple-100">
+                {/* Gradient Glow Effect on Hover */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#6b2fa5] to-purple-600 opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl pointer-events-none" />
                 
-                <div className="relative bg-white rounded-3xl p-8 m-0.5">
+                <div className="relative bg-white rounded-3xl p-8">
                   {/* Top Gradient Bar */}
-                  <div className="absolute top-0 left-0 right-0 h-2 bg-[#6b2fa5]" />
+                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#6b2fa5] to-purple-600 rounded-t-3xl" />
 
                   {/* Content Container */}
-                  <div className="flex flex-col items-center text-center">
+                  <div className="flex flex-col items-center text-center pt-4">
                     {/* Image Container */}
                     <div className="relative mb-6">
-                      {/* Animated Ring */}
-                      <div className="absolute inset-0 -m-2 rounded-full bg-[#6b2fa5] opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
+                      {/* Animated Ring on Hover */}
+                      <div className="absolute inset-0 -m-2 rounded-full bg-gradient-to-r from-[#6b2fa5] to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse pointer-events-none" />
                       
                       {/* Image Wrapper with Gradient Border */}
-                      <div className="relative p-1 rounded-full bg-[#6b2fa5]">
+                      <div className="relative p-1 rounded-full bg-gradient-to-r from-[#6b2fa5] to-purple-600">
                         <div className="relative w-48 h-48 rounded-full overflow-hidden bg-white p-1">
                           <div className="relative w-full h-full rounded-full overflow-hidden">
                             <Image
@@ -137,7 +137,7 @@ const Creators = () => {
                       </div>
 
                       {/* Role Badge */}
-                      <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-[#6b2fa5] text-white text-xs font-bold rounded-full shadow-lg whitespace-nowrap transform transition-all duration-500 ${
+                      <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-[#6b2fa5] to-purple-600 text-white text-xs font-bold rounded-full shadow-lg whitespace-nowrap transform transition-all duration-500 ${
                         hoveredIndex === index ? "scale-110" : "scale-100"
                       }`}>
                         {creator.title}
@@ -155,33 +155,33 @@ const Creators = () => {
                     <div className="flex items-center gap-4">
                       <a
                         href={creator.social.linkedin}
-                        className="p-3 rounded-full bg-purple-50 hover:bg-[#6b2fa5] text-gray-600 hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-lg group/icon"
+                        className="p-3 rounded-full bg-purple-50 hover:bg-gradient-to-r hover:from-[#6b2fa5] hover:to-purple-600 text-gray-600 hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-lg"
                         aria-label="LinkedIn"
                       >
                         <Linkedin className="w-5 h-5" />
                       </a>
                       <a
                         href={creator.social.twitter}
-                        className="p-3 rounded-full bg-purple-50 hover:bg-[#6b2fa5] text-gray-600 hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-lg group/icon"
+                        className="p-3 rounded-full bg-purple-50 hover:bg-gradient-to-r hover:from-[#6b2fa5] hover:to-purple-600 text-gray-600 hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-lg"
                         aria-label="Twitter"
                       >
                         <Twitter className="w-5 h-5" />
                       </a>
                       <a
                         href={`mailto:${creator.social.email}`}
-                        className="p-3 rounded-full bg-purple-50 hover:bg-[#6b2fa5] text-gray-600 hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-lg group/icon"
+                        className="p-3 rounded-full bg-purple-50 hover:bg-gradient-to-r hover:from-[#6b2fa5] hover:to-purple-600 text-gray-600 hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-lg"
                         aria-label="Email"
                       >
                         <Mail className="w-5 h-5" />
                       </a>
                     </div>
 
-                    {/* Decorative Elements */}
-                    <div className="absolute bottom-4 left-4 w-20 h-20 opacity-5 group-hover:opacity-10 transition-opacity">
-                      <div className="absolute inset-0 bg-[#6b2fa5] rounded-full" />
+                    {/* Decorative Elements - Lighter */}
+                    <div className="absolute bottom-4 left-4 w-20 h-20 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#6b2fa5] to-purple-600 rounded-full" />
                     </div>
-                    <div className="absolute top-20 right-4 w-16 h-16 opacity-5 group-hover:opacity-10 transition-opacity">
-                      <div className="absolute inset-0 bg-[#6b2fa5] rounded-full" />
+                    <div className="absolute top-20 right-4 w-16 h-16 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-500 rounded-full" />
                     </div>
                   </div>
                 </div>
