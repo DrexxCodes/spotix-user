@@ -218,7 +218,7 @@ export default function ClientPage({
           try {
             const idToken = await user.getIdToken()
 
-            const walletResponse = await fetch("/api/wallet", {
+            const walletResponse = await fetch("/api/iwss", {
               method: "GET",
               headers: {
                 Authorization: `Bearer ${idToken}`,

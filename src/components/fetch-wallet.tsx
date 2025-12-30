@@ -36,7 +36,7 @@ const FetchWallet = () => {
         const idToken = await user.getIdToken()
 
         // Call the wallet API with proper authentication
-        const response = await fetch("/api/wallet", {
+        const response = await fetch("/api/iwss", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${idToken}`,

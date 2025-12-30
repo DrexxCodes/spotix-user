@@ -224,7 +224,7 @@ export default function PaymentClient() {
 
   const fetchWalletData = async (userId: string) => {
     try {
-      const response = await fetch("/api/wallet", {
+      const response = await fetch("/api/iwss", {
         headers: {
           Authorization: `Bearer ${await auth.currentUser?.getIdToken()}`,
         },
