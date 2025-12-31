@@ -1,7 +1,7 @@
 // Firebase Admin SDK configuration for server-side operations
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
-import { getAuth } from "firebase-admin/auth"
+import { initializeApp, getApps, cert, type App } from "firebase-admin/app"
+import { getFirestore, type Firestore } from "firebase-admin/firestore"
+import { getAuth, type Auth } from "firebase-admin/auth"
 
 // Initialize Firebase Admin SDK
 const firebaseAdminConfig = {
@@ -14,10 +14,13 @@ const firebaseAdminConfig = {
 }
 
 // Initialize Firebase Admin app if not already initialized
-const adminApp = getApps().length === 0 ? initializeApp(firebaseAdminConfig) : getApps()[0]
+const adminApp: App = getApps().length === 0 ? initializeApp(firebaseAdminConfig) : getApps()[0]
 
 // Initialize Admin Firestore and Auth
-export const adminDb = getFirestore(adminApp)
-export const adminAuth = getAuth(adminApp)
+export const adminDb: Firestore = getFirestore(adminApp)
+export const adminAuth: Auth = getAuth(adminApp)
+
+// Also export the auth function for backwards compatibility if needed
+export const auth = () => adminAuth
 
 export default adminApp

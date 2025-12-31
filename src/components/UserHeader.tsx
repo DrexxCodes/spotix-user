@@ -57,9 +57,6 @@ const UserHeader: React.FC = () => {
               <Link href="/Referrals">Referrals</Link>
             </DesktopNavItem>
             <DesktopNavItem>
-              <Link href="/wallet-history">Wallet History</Link>
-            </DesktopNavItem>
-            <DesktopNavItem>
               <Link href="https://t.me/SpotixNG_bot">Telegram Bot</Link>
             </DesktopNavItem>
             <DesktopNavItem>
@@ -92,10 +89,6 @@ const UserHeader: React.FC = () => {
           <NavItem onClick={() => setMenuOpen(false)}>
             <ClipboardCheck size={20} />
             <Link href="/Referrals">Referrals</Link>
-          </NavItem>
-          <NavItem onClick={() => setMenuOpen(false)}>
-            <History size={20} />
-            <Link href="/wallet-history">Wallet History</Link>
           </NavItem>
           <NavItem onClick={() => setMenuOpen(false)}>
             <Bot size={20} />
