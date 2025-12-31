@@ -11,7 +11,7 @@ import Features from "@/components/landing/Features"
 import Creators from "@/components/landing/Creators"
 import BookerCTA from "@/components/landing/BookerCTA"
 import Newsletter from "@/components/landing/News"
-import {Footer} from "@/components/landing/footer"
+import Footer from "@/components/footer"
 
 export default function LandingPage() {
   const [isLoaded, setIsLoaded] = useState(false)
