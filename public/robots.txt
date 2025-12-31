@@ -1,0 +1,46 @@
+# Spotix Nigeria - Robots.txt
+# Website: https://spotix.com.ng
+
+# Allow all crawlers to access all content
+User-agent: *
+Allow: /
+
+# Disallow sensitive or admin areas
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /dashboard/private/
+
+# Allow specific important paths
+Allow: /api/og
+Allow: /_next/static/
+Allow: /_next/image
+
+# Crawl-delay (optional - use if you experience heavy bot traffic)
+# Crawl-delay: 10
+
+# Sitemap location
+Sitemap: https://spotix.com.ng/sitemap.xml
+
+# Specific bot rules (optional)
+# Google
+User-agent: Googlebot
+Allow: /
+
+# Bing
+User-agent: Bingbot
+Allow: /
+
+# Yandex
+User-agent: Yandex
+Allow: /
+
+# Block bad bots (optional)
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /

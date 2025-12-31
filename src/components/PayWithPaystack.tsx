@@ -147,6 +147,11 @@ export default function PayWithPaystack({
         metadata: {
           custom_fields: [
             {
+              display_name: "Transaction Type",
+              variable_name: "type",
+              value: "ticket_purchase",
+            },
+            {
               display_name: "Event Name",
               variable_name: "event_name",
               value: metadata.eventName,
