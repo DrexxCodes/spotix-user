@@ -93,10 +93,11 @@ const Login: React.FC<LoginProps> = () => {
     }
 
     try {
-      // First, sign in with Firebase to check email verification
+      // Step 1: Sign in with Firebase Auth to check email verification
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
 
+      // Check if email is verified
       if (!user.emailVerified) {
         setUnverifiedUser(user)
         setShowVerificationOption(true)
@@ -105,7 +106,10 @@ const Login: React.FC<LoginProps> = () => {
         return
       }
 
-      // Call API route for login to get user data
+      // Step 2: Get ID token from Firebase
+      const idToken = await user.getIdToken()
+
+      // Step 3: Call API route to create session cookie
       const response = await fetch("/api/v1/user", {
         method: "POST",
         headers: {
@@ -113,8 +117,7 @@ const Login: React.FC<LoginProps> = () => {
         },
         body: JSON.stringify({
           action: "login",
-          email,
-          password,
+          idToken: idToken,
         }),
       })
 
@@ -126,13 +129,18 @@ const Login: React.FC<LoginProps> = () => {
         return
       }
 
-      // Store user data in localStorage or context (optional)
+      console.log("Login successful:", data)
+
+      // Store user data in localStorage (optional, for quick access)
       if (typeof window !== "undefined") {
         localStorage.setItem("spotix_user", JSON.stringify(data.user))
       }
 
+      // Clear form
       setEmail("")
       setPassword("")
+      
+      // Redirect to home
       router.push("/home")
     } catch (error: any) {
       console.error("Login error:", error)
@@ -147,6 +155,9 @@ const Login: React.FC<LoginProps> = () => {
         errorMessage = "Please check your internet connection and try again"
       } else if (error.code === "auth/user-disabled") {
         errorMessage = "This account has been disabled"
+      } else if (error.message) {
+        // Use the error message from the API if available
+        errorMessage = error.message
       }
       
       setError(errorMessage)

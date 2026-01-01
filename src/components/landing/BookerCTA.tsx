@@ -183,7 +183,7 @@ const BookerCTA = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link
-                href="/createevent"
+                href="https://booker.spotix.com.ng/create-event"
                 className="group relative px-8 py-4 bg-white text-[#6b2fa5] rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl overflow-hidden"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
@@ -194,11 +194,11 @@ const BookerCTA = () => {
               </Link>
 
               <Link
-                href="/bookerRole"
+                href="/booker-confirm"
                 className="group px-8 py-4 bg-white/10 backdrop-blur-sm border-2 border-white text-white rounded-full font-bold text-lg transition-all duration-300 hover:bg-white hover:text-[#6b2fa5] hover:scale-105 hover:shadow-xl"
               >
                 <span className="flex items-center justify-center gap-2">
-                  Learn More
+                  Become a Booker
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
               </Link>

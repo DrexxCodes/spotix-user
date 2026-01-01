@@ -246,7 +246,7 @@ const Hero = () => {
           </Link>
 
           <Link
-            href="/createevent"
+            href="https://booker.spotix.com.ng/create-event"
             className="group px-10 py-4 min-w-[200px] bg-white/10 backdrop-blur-sm border-2 border-white text-white rounded-full text-lg font-semibold transition-all duration-300 hover:bg-white hover:text-[#6b2fa5] hover:scale-105 hover:shadow-xl"
           >
             Create Events

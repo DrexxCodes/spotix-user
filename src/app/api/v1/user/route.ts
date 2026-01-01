@@ -44,8 +44,7 @@ export async function GET(request: NextRequest) {
  * Login Body:
  * {
  *   action: "login",
- *   email: string,
- *   password: string
+ *   idToken: string  // Firebase ID token from client
  * }
  */
 export async function POST(request: NextRequest) {
@@ -362,16 +361,17 @@ async function handleSignup(body: any) {
 
 /**
  * Handle User Login
+ * Now includes session cookie creation
  */
 async function handleLogin(body: any) {
-  const { email, password } = body;
+  const { idToken } = body;
 
   // Validate required fields
-  if (!email || !password) {
+  if (!idToken) {
     return NextResponse.json(
       {
         error: "Bad Request",
-        message: "Missing required fields: email, password",
+        message: "Missing required field: idToken",
         developer: "API developed and maintained by Spotix Technologies",
       },
       { status: 400 }
@@ -379,11 +379,19 @@ async function handleLogin(body: any) {
   }
 
   try {
-    // Get user by email
-    const userRecord = await adminAuth.getUserByEmail(email);
-    const userId = userRecord.uid;
+    // Step 1: Verify the ID token
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    const userId = decodedToken.uid;
 
-    // Fetch user document from Firestore
+    console.log("Token verified for user:", userId);
+
+    // Step 2: Create session cookie (5 days expiry)
+    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days in milliseconds
+    const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
+
+    console.log("Session cookie created");
+
+    // Step 3: Fetch user document from Firestore
     const userDoc = await adminDb.collection("users").doc(userId).get();
 
     if (!userDoc.exists) {
@@ -399,7 +407,7 @@ async function handleLogin(body: any) {
 
     const userData = userDoc.data();
 
-    // Fetch balance from IWSS collection
+    // Step 4: Fetch balance from IWSS collection
     let balance = 0;
     try {
       const iwssDoc = await adminDb.collection("IWSS").doc(userId).get();
@@ -411,23 +419,26 @@ async function handleLogin(body: any) {
       console.error("Error fetching IWSS balance:", iwssError);
     }
 
-    // Update last login timestamp
+    // Step 5: Get user record for email verification status
+    const userRecord = await adminAuth.getUser(userId);
+
+    // Step 6: Update last login timestamp
     try {
       await adminDb.collection("users").doc(userId).update({
-        lastLogin: new Date().toISOString(),
+        lastLogin: FieldValue.serverTimestamp(),
       });
     } catch (updateError) {
       console.error("Error updating last login:", updateError);
     }
 
-    // Return user data
-    return NextResponse.json(
+    // Step 7: Create response with session cookie
+    const response = NextResponse.json(
       {
         success: true,
         message: "Login successful",
         user: {
           uid: userId,
-          email: userRecord.email || email,
+          email: userRecord.email || userData?.email || "",
           username: userData?.username || "",
           fullName: userData?.fullName || "",
           emailVerified: userRecord.emailVerified,
@@ -440,14 +451,39 @@ async function handleLogin(body: any) {
       },
       { status: 200 }
     );
+
+    // Step 8: Set session cookie in response
+    response.cookies.set({
+      name: "session",
+      value: sessionCookie,
+      maxAge: expiresIn / 1000, // Convert to seconds
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      sameSite: "lax",
+    });
+
+    console.log("Session cookie set in response");
+
+    return response;
   } catch (error: any) {
     console.error("Login error:", error);
 
     let errorMessage = "Unable to sign in. Please try again";
-    if (error.code === "auth/user-not-found") {
-      errorMessage = "Incorrect email or password";
-    } else if (error.code === "auth/invalid-email") {
-      errorMessage = "Please enter a valid email address";
+    let statusCode = 401;
+
+    if (error.code === "auth/id-token-expired") {
+      errorMessage = "Your session has expired. Please sign in again";
+    } else if (error.code === "auth/id-token-revoked") {
+      errorMessage = "Your session has been revoked. Please sign in again";
+    } else if (error.code === "auth/invalid-id-token") {
+      errorMessage = "Invalid authentication token. Please sign in again";
+    } else if (error.code === "auth/user-not-found") {
+      errorMessage = "User account not found";
+      statusCode = 404;
+    } else if (error.code === "auth/user-disabled") {
+      errorMessage = "This account has been disabled. Please contact support";
+      statusCode = 403;
     }
 
     return NextResponse.json(
@@ -457,7 +493,7 @@ async function handleLogin(body: any) {
         details: error.message,
         developer: "API developed and maintained by Spotix Technologies",
       },
-      { status: 401 }
+      { status: statusCode }
     );
   }
 }
