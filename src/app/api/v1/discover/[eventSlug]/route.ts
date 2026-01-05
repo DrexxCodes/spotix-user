@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { adminDb } from "../../../lib/firebase-admin"
+import { adminDb } from "@/app/lib/firebase-admin"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ eventSlug: string }> }) {
   try {

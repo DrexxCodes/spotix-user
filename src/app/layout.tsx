@@ -113,17 +113,14 @@ export const metadata: Metadata = {
   },
   
   verification: {
-    // Add these when you get them:
-    // google: "your-google-verification-code",
-    // yandex: "your-yandex-verification-code",
-    // bing: "your-bing-verification-code",
+ 
   },
   
   category: "Events & Entertainment",
   
   other: {
-    "mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-capable": "yes",
+    "mobile-web-app-capable": "no",
+    "apple-mobile-web-app-capable": "no",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
     "apple-mobile-web-app-title": "Spotix",
   },
@@ -163,7 +160,7 @@ export default function RootLayout({
               name: "Spotix Technologies",
               alternateName: "Spotix Nigeria",
               url: "https://spotix.com.ng",
-              logo: "https://i.postimg.cc/FR5xpcpZ/hero.jpg",
+              logo: "https://spotix.com.ng/logo-full.png",
               description: "Find, book, and attend the best events everywhere in Nigeria. AI-powered event management platform.",
               slogan: "Spot Your Next Adventure",
               foundingDate: "2024",
@@ -209,7 +206,7 @@ export default function RootLayout({
                 name: "Spotix Technologies",
                 logo: {
                   "@type": "ImageObject",
-                  url: "https://i.postimg.cc/FR5xpcpZ/hero.jpg",
+                  url: "https://spotix.com.ng/logo-full.png",
                 },
               },
             }),

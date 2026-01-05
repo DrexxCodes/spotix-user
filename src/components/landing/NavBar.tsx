@@ -1,13 +1,36 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Menu, X } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Menu, X, Search } from "lucide-react"
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore"
+import { db } from "@/app/lib/firebase"
+
+interface SearchResult {
+  eventId: string
+  eventName: string
+  imageURL: string
+  creatorID: string
+  eventType: string
+  venue: string
+  eventGroup: string
+}
 
 const Navbar = () => {
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [showResults, setShowResults] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
+  const [allEvents, setAllEvents] = useState<SearchResult[]>([])
+  const [desktopSearchExpanded, setDesktopSearchExpanded] = useState(false)
+  
+  const searchRef = useRef<HTMLDivElement>(null)
+  const desktopSearchRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,10 +50,113 @@ const Navbar = () => {
     }
   }, [menuOpen])
 
+  // Fetch all events once on mount
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const eventsQuery = query(
+          collection(db, "publicEvents"),
+          orderBy("timestamp", "desc"),
+          limit(100)
+        )
+        const snapshot = await getDocs(eventsQuery)
+        
+        const events: SearchResult[] = snapshot.docs
+          .map(doc => {
+            const data = doc.data()
+            return {
+              eventId: data.eventId || doc.id,
+              eventName: data.eventName || "",
+              imageURL: data.imageURL || "",
+              creatorID: data.creatorID || "",
+              eventType: data.eventType || "",
+              venue: data.venue || "",
+              eventGroup: data.eventGroup || ""
+            }
+          })
+          .filter(event => event.eventName && !event.eventGroup) // Filter out event groups
+        
+        setAllEvents(events)
+      } catch (error) {
+        console.error("Error fetching events:", error)
+      }
+    }
+
+    fetchEvents()
+  }, [])
+
+  // Handle search with debounce
+  useEffect(() => {
+    if (searchQuery.length < 3) {
+      setSearchResults([])
+      setShowResults(false)
+      return
+    }
+
+    setIsSearching(true)
+    const debounceTimer = setTimeout(() => {
+      const query = searchQuery.toLowerCase()
+      const filtered = allEvents
+        .filter(event => 
+          event.eventName.toLowerCase().includes(query) ||
+          event.eventType.toLowerCase().includes(query) ||
+          event.venue.toLowerCase().includes(query)
+        )
+        .slice(0, 5) // Show top 5 results
+      
+      setSearchResults(filtered)
+      setShowResults(filtered.length > 0)
+      setIsSearching(false)
+    }, 300)
+
+    return () => clearTimeout(debounceTimer)
+  }, [searchQuery, allEvents])
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false)
+      }
+      if (desktopSearchRef.current && !desktopSearchRef.current.contains(event.target as Node)) {
+        if (!searchQuery) {
+          setDesktopSearchExpanded(false)
+        }
+        setShowResults(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [searchQuery])
+
+  const handleResultClick = (result: SearchResult) => {
+    setSearchQuery("")
+    setShowResults(false)
+    setDesktopSearchExpanded(false)
+    setMenuOpen(false)
+    router.push(`/event/${result.creatorID}/${result.eventId}`)
+  }
+
+  const getOptimizedImageUrl = (url: string): string => {
+    if (!url) return "/placeholder.svg"
+    
+    if (url.includes('cloudinary.com')) {
+      const uploadIndex = url.indexOf('/upload/')
+      if (uploadIndex !== -1) {
+        const beforeUpload = url.substring(0, uploadIndex + 8)
+        const afterUpload = url.substring(uploadIndex + 8)
+        return `${beforeUpload}c_fill,w_80,h_80,q_auto,f_auto/${afterUpload}`
+      }
+    }
+    
+    return url
+  }
+
   const navLinks = [
-    { href: "#how-it-works", label: "How It Works" },
-    { href: "#features", label: "Features" },
-    { href: "#creators", label: "Creators" },
+    { href: "/", label: "Home" },
+    { href: "/pricing", label: "Pricing" },
+    { href: "https://blog.spotix.com.ng", label: "Blog" },
   ]
 
   return (
@@ -48,7 +174,7 @@ const Navbar = () => {
             <Link href="/" className="flex items-center space-x-3 group">
               <div className="relative w-12 h-12 transition-transform duration-300 group-hover:scale-110">
                 <Image
-                  src="/xmas.png"
+                  src="/logo.png"
                   alt="Spotix Logo"
                   fill
                   className="object-contain"
@@ -89,10 +215,80 @@ const Navbar = () => {
                 </a>
               ))}
 
+              {/* Desktop Search */}
+              <div 
+                ref={desktopSearchRef}
+                className="relative ml-2"
+                onMouseEnter={() => setDesktopSearchExpanded(true)}
+              >
+                <div className={`flex items-center transition-all duration-300 ${
+                  desktopSearchExpanded ? 'w-80' : 'w-10'
+                }`}>
+                  <div className="relative w-full">
+                    <Search 
+                      size={20} 
+                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-300 ${
+                        scrolled ? "text-[#6b2fa5]" : "text-white"
+                      }`}
+                    />
+                    {desktopSearchExpanded && (
+                      <input
+                        type="text"
+                        placeholder="Search events..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => setShowResults(searchResults.length > 0)}
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#6b2fa5] placeholder-[#6b2fa5]/60 focus:outline-none focus:ring-2 focus:ring-[#6b2fa5] focus:border-transparent transition-all duration-300"
+                        autoFocus
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Desktop Search Results */}
+                {showResults && desktopSearchExpanded && (
+                  <div className="absolute top-full right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50 max-h-96 overflow-y-auto">
+                    {isSearching ? (
+                      <div className="p-4 text-center text-gray-500">
+                        <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[#6b2fa5]"></div>
+                      </div>
+                    ) : (
+                      searchResults.map((result) => (
+                        <div
+                          key={`${result.creatorID}-${result.eventId}`}
+                          onClick={() => handleResultClick(result)}
+                          className="flex items-center gap-3 p-3 hover:bg-purple-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                            <img
+                              src={getOptimizedImageUrl(result.imageURL)}
+                              alt={result.eventName}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.src = "/placeholder.svg"
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-900 truncate text-sm">
+                              {result.eventName}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {result.eventType} • {result.venue}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Desktop Auth Buttons */}
               <div className="flex items-center space-x-3 ml-4">
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   className={`px-5 py-2.5 font-semibold rounded-lg transition-all duration-300 border-2 ${
                     scrolled
                       ? "text-[#6b2fa5] border-[#6b2fa5] hover:bg-purple-50"
@@ -102,7 +298,7 @@ const Navbar = () => {
                   Login
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/auth/signup"
                   className="px-5 py-2.5 bg-gradient-to-r from-[#6b2fa5] to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
                 >
                   Sign Up
@@ -150,7 +346,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-3">
             <div className="relative w-10 h-10">
               <Image
-                src="/xmas.png"
+                src="/logo.png"
                 alt="Spotix Logo"
                 fill
                 className="object-contain"
@@ -167,6 +363,60 @@ const Navbar = () => {
           >
             <X size={24} className="text-gray-700" />
           </button>
+        </div>
+
+        {/* Mobile Search */}
+        <div ref={searchRef} className="p-4 border-b border-purple-100">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#6b2fa5]" size={18} />
+            <input
+              type="text"
+              placeholder="Search events..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setShowResults(searchResults.length > 0)}
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-[#6b2fa5] placeholder-[#6b2fa5]/60 focus:outline-none focus:ring-2 focus:ring-[#6b2fa5] focus:border-transparent"
+            />
+          </div>
+
+          {/* Mobile Search Results */}
+          {showResults && (
+            <div className="mt-2 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden max-h-64 overflow-y-auto">
+              {isSearching ? (
+                <div className="p-4 text-center text-gray-500">
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[#6b2fa5]"></div>
+                </div>
+              ) : (
+                searchResults.map((result) => (
+                  <div
+                    key={`${result.creatorID}-${result.eventId}`}
+                    onClick={() => handleResultClick(result)}
+                    className="flex items-center gap-3 p-3 hover:bg-purple-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
+                  >
+                    <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                      <img
+                        src={getOptimizedImageUrl(result.imageURL)}
+                        alt={result.eventName}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = "/placeholder.svg"
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 truncate text-sm">
+                        {result.eventName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {result.eventType} • {result.venue}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         {/* Mobile Menu Links */}

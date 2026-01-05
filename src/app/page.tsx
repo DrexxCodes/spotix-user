@@ -1,5 +1,3 @@
-// app/page.tsx (SERVER COMPONENT ✅)
-
 import LandingClient from "@/components/landing/client";
 
 export const metadata = {

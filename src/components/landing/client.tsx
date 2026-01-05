@@ -1,4 +1,3 @@
-// components/landing/LandingClient.tsx
 "use client";
 
 import { useState, useEffect } from "react";

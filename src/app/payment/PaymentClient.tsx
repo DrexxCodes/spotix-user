@@ -224,7 +224,7 @@ export default function PaymentClient() {
 
   const fetchWalletData = async (userId: string) => {
     try {
-      const response = await fetch("/api/iwss", {
+      const response = await fetch("/api/v1/iwss", {
         headers: {
           Authorization: `Bearer ${await auth.currentUser?.getIdToken()}`,
         },
@@ -272,7 +272,7 @@ export default function PaymentClient() {
     setDiscountError("")
 
     try {
-      const response = await fetch("/api/discount", {
+      const response = await fetch("/api/v1/discount", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -359,7 +359,7 @@ export default function PaymentClient() {
       const transactionFee = paymentData.ticketPrice === 0 ? 0 : 150
       const totalAmount = subtotal + transactionFee
 
-      const response = await fetch("/api/create-pay-ref", {
+      const response = await fetch("/api/v1/create-pay-ref", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -13,7 +13,7 @@ async function getEventData(eventSlug: string) {
   try {
     const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
 
-    const response = await fetch(`${baseUrl}/api/discover/${eventSlug}`, {
+    const response = await fetch(`${baseUrl}/api/v1/discover/${eventSlug}`, {
       cache: "no-store", // Always fetch fresh data for OG tags
       headers: {
         "User-Agent": "Spotix-Bot/1.0", // Identify as our own crawler

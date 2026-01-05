@@ -27,7 +27,7 @@ export function Footer() {
                   height={40}
                   className="mb-4"
                 />
-                <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ color: '#6b2fa5' }}>Spotix for Bookers</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ color: '#6b2fa5' }}>Spotix</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   The premier event management platform empowering bookers to create, monitor, and manage events with ease. 
                   Streamline your ticketing, track sales in real-time, and deliver exceptional experiences to your attendees.

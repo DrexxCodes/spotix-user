@@ -84,7 +84,7 @@ export default function PayWithMonnify({ reference, amount, email, onClose, onSu
   const handlePaymentSuccess = async (response: any) => {
     try {
       // Update payment reference in Firestore
-      await fetch("/api/vote/verify", {
+      await fetch("/api/v1/vote/verify", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,7 +107,7 @@ export default function PayWithMonnify({ reference, amount, email, onClose, onSu
   const handlePaymentFailure = async (response: any) => {
     try {
       // Update payment reference status to failed
-      await fetch("/api/vote/verify", {
+      await fetch("/api/v1/vote/verify", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

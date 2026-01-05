@@ -4,6 +4,7 @@ import { adminAuth, adminDb } from "@/app/lib/firebase-admin";
 /**
  * Server-side utility to get current authenticated user from session cookie
  * Use this in Server Components and API routes
+ * Dev by Drexx @2025
  */
 
 export interface CurrentUser {

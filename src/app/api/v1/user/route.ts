@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 /**
  * GET Handler
  * Returns a friendly message for unauthorized access
+ * Dev by Drexx @2025
  */
 export async function GET(request: NextRequest) {
   return NextResponse.json(

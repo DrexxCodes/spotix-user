@@ -71,10 +71,10 @@ export default async function PollPage({ params }: Props) {
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Poll Not Found</h1>
             <p className="text-slate-600 mb-6">The poll you're looking for doesn't exist or has been removed.</p>
             <a
-              href="/vote"
+              href="/home"
               className="inline-block px-6 py-2 bg-[#6b2fa5] text-white rounded-lg font-semibold hover:bg-[#5a1f8a] transition-colors"
             >
-              Back to Polls
+              Back to Home
             </a>
           </div>
         </main>

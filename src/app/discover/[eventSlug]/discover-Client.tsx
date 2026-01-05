@@ -24,7 +24,7 @@ export default function DiscoverClient({ eventSlug }: DiscoverClientProps) {
       try {
         console.log("Resolving shortlink for slug:", eventSlug)
 
-        const response = await fetch(`/api/discover/${eventSlug}`)
+        const response = await fetch(`/api/v1/discover/${eventSlug}`)
 
         if (!response.ok) {
           const errorData = await response.json()

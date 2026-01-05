@@ -123,7 +123,8 @@ export function ImageCarousel({ mainImage, additionalImages = [], eventName }: I
         {isLoaded && !hasError && (
           <button
             onClick={() => setShowFullscreen(true)}
-            className="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-70 z-10"
+            className="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full transition-all duration-200 hover:bg-opacity-70 z-10 hover:scale-110"
+            aria-label="View fullscreen"
           >
             <Maximize2 size={20} />
           </button>
@@ -134,13 +135,15 @@ export function ImageCarousel({ mainImage, additionalImages = [], eventName }: I
           <>
             <button
               onClick={handlePrevious}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-70 z-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full transition-all duration-200 hover:bg-opacity-70 hover:scale-110 z-10"
+              aria-label="Previous image"
             >
               <ChevronLeft size={20} />
             </button>
             <button
               onClick={handleNext}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-70 z-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full transition-all duration-200 hover:bg-opacity-70 hover:scale-110 z-10"
+              aria-label="Next image"
             >
               <ChevronRight size={20} />
             </button>
@@ -171,18 +174,20 @@ export function ImageCarousel({ mainImage, additionalImages = [], eventName }: I
 
       {/* Fullscreen Modal */}
       {showFullscreen && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
-          <div className="relative max-w-full max-h-full">
-            <button
-              onClick={() => setShowFullscreen(false)}
-              className="absolute -top-2 -right-2 sm:top-4 sm:right-4 bg-black bg-opacity-70 hover:bg-opacity-90 text-white p-3 rounded-full transition-all duration-200 z-20 shadow-lg border-2 border-white/20"
-            >
-              <X size={24} />
-            </button>
+        <div className="fixed inset-0 bg-black bg-opacity-95 z-50">
+          <button
+            onClick={() => setShowFullscreen(false)}
+            className="absolute top-1/2 -translate-y-1/2 right-4 bg-white hover:bg-gray-100 text-gray-900 p-4 rounded-full transition-all duration-200 shadow-2xl border-2 border-gray-200"
+            style={{ zIndex: 9999 }}
+            aria-label="Close fullscreen"
+          >
+            <X size={28} />
+          </button>
+          <div className="w-full h-full flex items-center justify-center p-4 sm:p-8">
             <img
               src={images[currentIndex] || "/placeholder.svg"}
               alt={`${eventName} - Image ${currentIndex + 1}`}
-              className="max-w-full max-h-full object-contain rounded-lg"
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg"
             />
           </div>
         </div>

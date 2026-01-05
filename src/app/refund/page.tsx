@@ -67,6 +67,7 @@ export default function Refund() {
     moreInformation: "",
     agreedToPolicy: false,
   })
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
   useEffect(() => {
     fetchUserTickets()
@@ -234,7 +235,7 @@ export default function Refund() {
       })
 
       // Send email notification
-      await fetch("/api/notify/refund-request", {
+      await fetch(`${BACKEND_URL}/api/notify/refund-request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

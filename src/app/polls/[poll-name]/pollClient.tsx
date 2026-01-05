@@ -137,7 +137,7 @@ export default function PollClient({ pollData, voteId, userId }: PollClientProps
     
     // Create payment reference
     try {
-      const response = await fetch("/api/vote/payref", {
+      const response = await fetch("/api/v1/vote/payref", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
