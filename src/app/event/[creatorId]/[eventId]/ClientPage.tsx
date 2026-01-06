@@ -456,13 +456,71 @@ export default function ClientPage({
     }
   }
 
-  const handleBuyTicket = () => {
-    if (!isAuthenticated) {
-      alert("Please login to buy tickets")
-      return
-    }
-    // Additional buy ticket logic here
+// Replace the handleBuyTicket function on line 388 with this:
+
+const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
+  if (!eventData) {
+    console.error("No event data available")
+    return
   }
+
+  // Check if event has passed
+  if (isEventPassed) {
+    setShowPassedDialog(true)
+    return
+  }
+
+  // Check if sold out
+  if (isSoldOut) {
+    alert("Sorry, this event is sold out!")
+    return
+  }
+
+  // Check if sales ended
+  if (isSaleEnded) {
+    alert("Sorry, ticket sales have ended for this event!")
+    return
+  }
+
+  // Check if user is authenticated
+  if (!isAuthenticated) {
+    // Save current path to redirect back after login
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem("redirectAfterLogin", window.location.pathname)
+    }
+    router.push("/auth/login")
+    return
+  }
+
+  // Ensure price is a number
+  const parsedPrice = typeof ticketPrice === "string" 
+    ? parseFloat(ticketPrice) 
+    : ticketPrice
+
+  // Prepare payment data - EXACTLY like the old Vite version
+  // Only send these 5 fields initially, payment page will fetch the rest
+  const paymentData = {
+    eventId: eventId,
+    eventName: eventData.eventName,
+    ticketType: ticketType,
+    ticketPrice: parsedPrice,
+    eventCreatorId: creatorId,
+  }
+
+  // Store in sessionStorage for the payment page to read
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem("spotix_payment_data", JSON.stringify(paymentData))
+  }
+
+  console.log("✅ Payment data stored in sessionStorage:", paymentData)
+  console.log("🚀 Navigating to payment page...")
+
+  // Close the buy ticket dialog
+  setShowBuyTicketDialog(false)
+
+  // Navigate to payment page
+  router.push("/payment")
+}
 
   const handleShowPassedDialog = () => {
     setShowPassedDialog(true)
