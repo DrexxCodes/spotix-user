@@ -235,7 +235,7 @@ export default function Refund() {
       })
 
       // Send email notification
-      await fetch(`${BACKEND_URL}/api/notify/refund-request`, {
+      await fetch(`${BACKEND_URL}/v1/notify/refund-request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

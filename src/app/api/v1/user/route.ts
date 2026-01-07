@@ -290,7 +290,7 @@ async function handleSignup(body: any) {
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       if (backendUrl) {
-        const response = await fetch(`${backendUrl}/api/mail/welcome-email`, {
+        const response = await fetch(`${backendUrl}/v1/mail/welcome-email`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

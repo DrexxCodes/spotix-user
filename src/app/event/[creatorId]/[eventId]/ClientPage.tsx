@@ -456,7 +456,6 @@ export default function ClientPage({
     }
   }
 
-// Replace the handleBuyTicket function on line 388 with this:
 
 const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
   if (!eventData) {
@@ -497,8 +496,7 @@ const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
     ? parseFloat(ticketPrice) 
     : ticketPrice
 
-  // Prepare payment data - EXACTLY like the old Vite version
-  // Only send these 5 fields initially, payment page will fetch the rest
+
   const paymentData = {
     eventId: eventId,
     eventName: eventData.eventName,

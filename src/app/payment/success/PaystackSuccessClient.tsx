@@ -67,7 +67,7 @@ function PaymentSuccessContent() {
           return
         }
 
-        const response = await fetch(`${BACKEND_URL}/api/ticket`, {
+        const response = await fetch(`${BACKEND_URL}/v1/ticket`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

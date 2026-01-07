@@ -511,7 +511,7 @@ const Profile = () => {
 
     try {
       const response = await fetch(
-        `${BACKEND_URL}/api/verify?accountNumber=${user.accountNumber}&bankName=${user.bankName}`,
+        `${BACKEND_URL}/v1/verify?accountNumber=${user.accountNumber}&bankName=${user.bankName}`,
       )
       if (!response.ok) {
         throw new Error(`Verification failed: ${response.status} ${response.statusText}`)

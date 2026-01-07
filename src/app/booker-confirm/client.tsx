@@ -149,7 +149,7 @@ const BookerConfirm = () => {
   const sendConfirmationEmail = async (name: string, email: string) => {
     setEmailSending(true)
     try {
-      const response = await fetch(`${BACKEND_URL}/api/mail/booker-confirmation`, {
+      const response = await fetch(`${BACKEND_URL}/v1/mail/booker-confirmation`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
