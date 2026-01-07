@@ -409,7 +409,7 @@ const Events = () => {
                       </div>
                     </Link>
                   ))
-                : Array(4)
+                : Array(1)
                     .fill(0)
                     .map((_, index) => (
                       <div

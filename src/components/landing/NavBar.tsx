@@ -15,7 +15,7 @@ interface SearchResult {
   creatorID: string
   eventType: string
   venue: string
-  eventGroup: string
+  eventGroup: boolean
 }
 
 const Navbar = () => {
@@ -64,19 +64,26 @@ const Navbar = () => {
         const events: SearchResult[] = snapshot.docs
           .map(doc => {
             const data = doc.data()
+            // Handle both creatorID and creatorId (case variations)
+            const creatorId = data.creatorID || data.creatorId || ""
             return {
               eventId: data.eventId || doc.id,
               eventName: data.eventName || "",
               imageURL: data.imageURL || "",
-              creatorID: data.creatorID || "",
+              creatorID: creatorId,
               eventType: data.eventType || "",
               venue: data.venue || "",
-              eventGroup: data.eventGroup || ""
+              eventGroup: data.eventGroup || false
             }
           })
-          .filter(event => event.eventName && !event.eventGroup) // Filter out event groups
+          .filter(event => 
+            event.eventName && 
+            event.creatorID && // Ensure creatorID exists
+            !event.eventGroup // Filter out event groups
+          )
         
         setAllEvents(events)
+        console.log("Fetched events with creatorIDs:", events.length) // Debug log
       } catch (error) {
         console.error("Error fetching events:", error)
       }
@@ -131,11 +138,20 @@ const Navbar = () => {
   }, [searchQuery])
 
   const handleResultClick = (result: SearchResult) => {
+    console.log("Clicked result:", result) // Debug log
     setSearchQuery("")
     setShowResults(false)
     setDesktopSearchExpanded(false)
     setMenuOpen(false)
-    router.push(`/event/${result.creatorID}/${result.eventId}`)
+    
+    // Ensure we have valid IDs before navigating
+    if (result.creatorID && result.eventId) {
+      console.log("Navigating to:", `/event/${result.creatorID}/${result.eventId}`)
+      router.push(`/event/${result.creatorID}/${result.eventId}`)
+    } else {
+      console.error("Missing creatorID or eventId:", result)
+      alert("Unable to open event. Missing event information.")
+    }
   }
 
   const getOptimizedImageUrl = (url: string): string => {
@@ -375,7 +391,8 @@ const Navbar = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setShowResults(searchResults.length > 0)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-[#6b2fa5] placeholder-[#6b2fa5]/60 focus:outline-none focus:ring-2 focus:ring-[#6b2fa5] focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-base text-[#6b2fa5] placeholder-[#6b2fa5]/60 focus:outline-none focus:ring-2 focus:ring-[#6b2fa5] focus:border-transparent"
+              style={{ fontSize: '16px' }}
             />
           </div>
 
