@@ -219,7 +219,7 @@ const Signup: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Create Account | Spotix</title>
+        <title>Create Account</title>
         <meta name="description" content="Join Spotix and start your event management journey today" />
       </Head>
 

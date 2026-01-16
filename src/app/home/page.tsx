@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Home from "./client"
 
 export const metadata: Metadata = {
-  title: "Home | Spotix",
+  title: "Home",
   description: "View a variety of events on Nigeria's premier event management platform.",
   keywords: [
     "Spotix Home",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Spotix account access",
   ],
   openGraph: {
-    title: "Home | Spotix",
+    title: "Home",
     description: "View a list of events happening on Spotix. Get tickets today!",
     url: "https://spotix.com.ng/home",
     siteName: "Spotix Nigeria",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Home | Spotix",
+    title: "Home",
     description: "View a list of events happening on Spotix. Get tickets today!",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },

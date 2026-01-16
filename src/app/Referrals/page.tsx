@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import ReferralsClient from "./client"
 
 export const metadata: Metadata = {
-  title: "Referrals | Spotix",
+  title: "Referrals",
   description: "Invite friends to Spotix and earn rewards. Share your referral code and get ₦200 for every friend who joins. Track your earnings and withdraw to your wallet.",
   keywords: [
     "Spotix referrals",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "referral earnings",
   ],
   openGraph: {
-    title: "Referrals | Spotix",
+    title: "Referrals",
     description: "Invite friends to Spotix and earn rewards. Get ₦200 for every friend who joins using your referral code.",
     url: "https://spotix.com.ng/referrals",
     siteName: "Spotix Nigeria",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Referrals | Spotix",
+    title: "Referrals",
     description: "Invite friends to Spotix and earn rewards. Get ₦200 for every friend who joins using your referral code.",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },

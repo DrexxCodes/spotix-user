@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const imageUrl = data.image || "/placeholder.svg?height=630&width=1200&query=event collection"
 
       return {
-        title: `${data.name} - Event Collection | Spotix`,
+        title: `${data.name} - Event Collection`,
         description: data.description || `Explore the ${data.name} event collection and its variations on Spotix`,
         openGraph: {
           title: `${data.name} - Event Collection`,

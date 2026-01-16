@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import VotingClient from "./client"
 
 export const metadata: Metadata = {
-  title: "Voting | Spotix",
+  title: "Voting",
   description: "Create and participate in polls. Vote on your favorite options and see real-time results.",
   keywords: [
     "Spotix referrals",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "referral earnings",
   ],
   openGraph: {
-    title: "Voting | Spotix",
+    title: "Voting",
     description: "Create and participate in polls. Vote on your favorite options and see real-time results.",
     url: "https://spotix.com.ng/vote",
     siteName: "Spotix Nigeria",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Voting | Spotix",
+    title: "Voting",
     description: "Create and participate in polls. Vote on your favorite options and see real-time results.",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },

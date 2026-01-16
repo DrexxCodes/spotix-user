@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import PricingClient from "./client"
 
 export const metadata: Metadata = {
-  title: "Pricing - Transparent Event Ticketing Rates | Spotix Nigeria",
+  title: "Pricing - Transparent Event Ticketing Rates Nigeria",
   description: "Discover Spotix's transparent pricing for event ticketing, voting, and merchandise sales. Only 5% + ₦100 per ticket sold. No hidden fees. Graphics design, custom event pages, branded emails, and smart cards available.",
   keywords: [
     "Spotix pricing",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     "Spotix smart card",
   ],
   openGraph: {
-    title: "Pricing - Transparent Event Ticketing Rates | Spotix Nigeria",
+    title: "Pricing - Transparent Event Ticketing Rates Nigeria",
     description: "Transparent pricing for event ticketing (5% + ₦100 per ticket), voting (10%), and merchandise sales (10%). Graphics design, custom event pages, and more.",
     url: "https://spotix.com.ng/pricing",
     siteName: "Spotix Nigeria",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pricing - Transparent Event Ticketing Rates | Spotix Nigeria",
+    title: "Pricing - Transparent Event Ticketing Rates Nigeria",
     description: "Transparent pricing for event ticketing (5% + ₦100 per ticket), voting (10%), and merchandise sales (10%). No hidden fees.",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },

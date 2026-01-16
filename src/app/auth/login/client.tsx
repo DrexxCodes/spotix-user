@@ -190,10 +190,10 @@ const LoginClient: React.FC<LoginProps> = () => {
   return (
     <>
       <Head>
-        <title>Sign In | Spotix</title>
+        <title>Sign In</title>
         <meta name="description" content="Sign in to your Spotix account to manage events and bookings" />
         <link rel="canonical" href="/login" />
-        <meta property="og:title" content="Sign In | Spotix" />
+        <meta property="og:title" content="Sign In" />
         <meta property="og:description" content="Sign in to your Spotix account to manage events and bookings" />
         <meta property="og:url" content="/login" />
       </Head>

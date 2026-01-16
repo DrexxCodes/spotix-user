@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import IWSSClient from "./client"
 
 export const metadata: Metadata = {
-  title: "IWSS | Spotix",
+  title: "IWSS",
   description: "View a variety of events on Nigeria's premier event management platform.",
   keywords: [
     "Spotix IWSS",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Spotix Inter Wallet Settlement System",
   ],
   openGraph: {
-    title: "IWSS | Spotix",
+    title: "IWSS",
     description: "View, manage, create and authorize trasanctions over the wallet system designed by Spotix",
     url: "https://spotix.com.ng/iwss",
     siteName: "Spotix Nigeria",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "IWSS | Spotix",
+    title: "IWSS",
     description: "View, manage, create and authorize trasanctions over the wallet system designed by Spotix",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },

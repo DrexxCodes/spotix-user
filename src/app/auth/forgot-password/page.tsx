@@ -119,10 +119,10 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = () => {
   return (
     <>
       <Head>
-        <title>Reset Password | Spotix</title>
+        <title>Reset Password</title>
         <meta name="description" content="Reset your Spotix account password securely" />
         <link rel="canonical" href="/forgot-password" />
-        <meta property="og:title" content="Reset Password | Spotix" />
+        <meta property="og:title" content="Reset Password" />
         <meta property="og:description" content="Reset your Spotix account password securely" />
         <meta property="og:url" content="/forgot-password" />
       </Head>

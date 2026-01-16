@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Signup from "./client"
 
 export const metadata: Metadata = {
-  title: "Signup | Spotix",
+  title: "Signup",
   description: "Create a new account on Spotix. Join Nigeria's premier event management platform.",
   keywords: [
     "Spotix signup",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Spotix account access",
   ],
   openGraph: {
-    title: "Signup | Spotix",
+    title: "Signup",
     description: "Create a new account on Spotix. Join Nigeria's premier event management platform.",
     url: "https://spotix.com.ng/auth/signup",
     siteName: "Spotix Nigeria",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Signup | Spotix",
+    title: "Signup",
     description: "Create a new account on Spotix. Join Nigeria's premier event management platform.",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },

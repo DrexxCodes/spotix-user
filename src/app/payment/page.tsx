@@ -2,10 +2,10 @@ import type { Metadata } from "next"
 import PaymentClient from "./PaymentClient"
 
 export const metadata: Metadata = {
-  title: "Payment | Spotix",
+  title: "Payment",
   description: "Choose your payment method for event tickets on Spotix",
   openGraph: {
-    title: "Payment | Spotix",
+    title: "Payment",
     description: "Choose your payment method for event tickets on Spotix",
     type: "website",
   },

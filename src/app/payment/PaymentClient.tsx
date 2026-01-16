@@ -474,7 +474,7 @@ export default function PaymentClient() {
   if (dataLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-xl p-8 text-center max-w-md">
+        <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-xl p-8 text-center w-full max-w-md mx-auto">
           <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-purple-500 border-r-transparent mb-4"></div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Loading Payment Details</h2>
           <p className="text-gray-600">Please wait while we prepare your checkout...</p>
@@ -486,7 +486,7 @@ export default function PaymentClient() {
   if (!paymentData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-xl p-8 text-center max-w-md">
+        <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-xl p-8 text-center w-full max-w-md mx-auto">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <X className="w-8 h-8 text-red-600" />
           </div>
@@ -523,14 +523,13 @@ export default function PaymentClient() {
   const totalAmount = subtotal + transactionFee
 
   return (
-
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex flex-col">
       <UserHeader />
 
-      <main className="flex-1">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+      <main className="flex-1 w-full">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {/* Page Title */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <button
               onClick={() => router.back()}
               className="flex items-center gap-2 text-gray-600 hover:text-purple-700 transition-colors mb-4"
@@ -539,91 +538,91 @@ export default function PaymentClient() {
               <span className="font-medium">Back to Event</span>
             </button>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "#6b2fa5" }}>
-                <ShieldCheck className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#6b2fa5" }}>
+                <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Secure Checkout</h1>
-                <p className="text-gray-600">Choose your preferred payment method</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 break-words">Secure Checkout</h1>
+                <p className="text-sm sm:text-base text-gray-600">Choose your preferred payment method</p>
               </div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Left Column - Event Summary & Discount */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6 w-full">
               {/* Event Summary */}
-              <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-4 sm:p-6 w-full">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{ background: "#f3e8ff" }}
                   >
                     <CheckCircle size={16} style={{ color: "#6b2fa5" }} />
                   </div>
-                  Order Summary
+                  <span className="break-words">Order Summary</span>
                 </h3>
 
                 <div className="space-y-3">
-                  <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
-                    <p className="text-sm text-gray-600 mb-1">Event Name</p>
-                    <p className="font-bold text-gray-900">{paymentData.eventName}</p>
+                  <div className="p-3 sm:p-4 bg-purple-50 rounded-xl border border-purple-100">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1">Event Name</p>
+                    <p className="font-bold text-sm sm:text-base text-gray-900 break-words">{paymentData.eventName}</p>
                   </div>
 
-                  <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
-                    <p className="text-sm text-gray-600 mb-1">Ticket Type</p>
-                    <p className="font-bold text-gray-900">{paymentData.ticketType}</p>
+                  <div className="p-3 sm:p-4 bg-purple-50 rounded-xl border border-purple-100">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1">Ticket Type</p>
+                    <p className="font-bold text-sm sm:text-base text-gray-900 break-words">{paymentData.ticketType}</p>
                   </div>
 
                   <div className="pt-4 border-t border-gray-200 space-y-2">
-                    <div className="flex justify-between text-gray-700">
+                    <div className="flex justify-between text-sm sm:text-base text-gray-700">
                       <span>Ticket Price</span>
-                      <span className="font-semibold">₦{formatNumber(paymentData.ticketPrice)}</span>
+                      <span className="font-semibold whitespace-nowrap">₦{formatNumber(paymentData.ticketPrice)}</span>
                     </div>
 
                     {discountData && (
-                      <div className="flex justify-between text-green-600 font-medium">
-                        <span>
+                      <div className="flex justify-between text-sm sm:text-base text-green-600 font-medium">
+                        <span className="break-words pr-2">
                           Discount (
                           {discountData.discountType === "percentage" ? `${discountData.discountValue}%` : "Fixed"})
                         </span>
-                        <span>-₦{formatNumber(discountAmount)}</span>
+                        <span className="whitespace-nowrap">-₦{formatNumber(discountAmount)}</span>
                       </div>
                     )}
 
-                    <div className="flex justify-between text-gray-700">
+                    <div className="flex justify-between text-sm sm:text-base text-gray-700">
                       <span>Transaction Fee</span>
-                      <span className={`font-semibold ${isFreeEvent ? "line-through text-gray-400" : ""}`}>
+                      <span className={`font-semibold whitespace-nowrap ${isFreeEvent ? "line-through text-gray-400" : ""}`}>
                         ₦{formatNumber(150)}
                         {isFreeEvent && <span className="ml-2 text-green-600 no-underline text-xs">Waived</span>}
                       </span>
                     </div>
 
                     <div
-                      className="flex justify-between pt-3 border-t border-gray-300 text-lg font-bold"
+                      className="flex justify-between pt-3 border-t border-gray-300 text-base sm:text-lg font-bold"
                       style={{ color: "#6b2fa5" }}
                     >
                       <span>Total Amount</span>
-                      <span>₦{formatNumber(totalAmount)}</span>
+                      <span className="whitespace-nowrap">₦{formatNumber(totalAmount)}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Discount Code */}
-              <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-6">
+              <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-4 sm:p-6 w-full">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-yellow-100">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-yellow-100 flex-shrink-0">
                     <Tag size={16} className="text-yellow-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">Discount Code</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">Discount Code</h3>
                 </div>
 
                 {discountData ? (
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-green-50 border-2 border-green-200">
-                    <div>
-                      <p className="font-bold text-green-700">{discountData.code}</p>
-                      <p className="text-sm text-green-600">
+                  <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-green-50 border-2 border-green-200">
+                    <div className="min-w-0 flex-1 pr-2">
+                      <p className="font-bold text-sm sm:text-base text-green-700 break-words">{discountData.code}</p>
+                      <p className="text-xs sm:text-sm text-green-600">
                         {discountData.discountType === "percentage"
                           ? `${discountData.discountValue}% off`
                           : `₦${formatNumber(discountData.discountValue)} off`}
@@ -631,14 +630,14 @@ export default function PaymentClient() {
                     </div>
                     <button
                       onClick={() => setDiscountData(null)}
-                      className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                      className="p-2 hover:bg-red-100 rounded-lg transition-colors flex-shrink-0"
                     >
                       <X className="w-5 h-5 text-red-600" />
                     </button>
                   </div>
                 ) : (
                   <div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={discountCode}
@@ -647,20 +646,20 @@ export default function PaymentClient() {
                           setDiscountError("")
                         }}
                         placeholder="Enter discount code"
-                        className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="flex-1 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full"
                       />
                       <button
                         onClick={validateDiscount}
                         disabled={discountLoading || !discountCode.trim()}
-                        className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all"
+                        className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all w-full sm:w-auto whitespace-nowrap"
                       >
                         {discountLoading ? "Checking..." : "Apply"}
                       </button>
                     </div>
                     {discountError && (
-                      <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
-                        <X size={14} />
-                        {discountError}
+                      <p className="text-red-600 text-xs sm:text-sm mt-2 flex items-center gap-1">
+                        <X size={14} className="flex-shrink-0" />
+                        <span className="break-words">{discountError}</span>
                       </p>
                     )}
                   </div>
@@ -668,21 +667,21 @@ export default function PaymentClient() {
               </div>
 
               {/* Referral Code */}
-              <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-6">
+              <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-4 sm:p-6 w-full">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-100">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-100 flex-shrink-0">
                     <Users size={16} className="text-blue-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">Referral Code (Optional)</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">Referral Code (Optional)</h3>
                 </div>
 
                 {referralData ? (
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-blue-50 border-2 border-blue-200">
-                    <div>
-                      <p className="font-bold text-blue-700">{referralData.code}</p>
-                      <p className="text-sm text-blue-600">Selected</p>
+                  <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-blue-50 border-2 border-blue-200">
+                    <div className="min-w-0 flex-1 pr-2">
+                      <p className="font-bold text-sm sm:text-base text-blue-700 break-words">{referralData.code}</p>
+                      <p className="text-xs sm:text-sm text-blue-600">Selected</p>
                     </div>
-                    <button onClick={removeReferral} className="p-2 hover:bg-red-100 rounded-lg transition-colors">
+                    <button onClick={removeReferral} className="p-2 hover:bg-red-100 rounded-lg transition-colors flex-shrink-0">
                       <X className="w-5 h-5 text-red-600" />
                     </button>
                   </div>
@@ -691,20 +690,20 @@ export default function PaymentClient() {
                     {referralFetching ? (
                       <div className="flex items-center justify-center py-8">
                         <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
-                        <span className="ml-2 text-gray-600">Loading referral codes...</span>
+                        <span className="ml-2 text-sm sm:text-base text-gray-600">Loading referral codes...</span>
                       </div>
                     ) : referralCodes.length === 0 ? (
-                      <p className="text-gray-500 text-center py-4">No referral codes available</p>
+                      <p className="text-gray-500 text-center py-4 text-sm sm:text-base">No referral codes available</p>
                     ) : (
                       <div className="relative">
                         <button
                           onClick={() => setShowReferralDropdown(!showReferralDropdown)}
-                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
                         >
-                          <span className="text-gray-600">Select a referral code...</span>
+                          <span className="text-gray-600 break-words pr-2">Select a referral code...</span>
                           <ChevronDown
                             size={18}
-                            className={`transition-transform ${showReferralDropdown ? "rotate-180" : ""}`}
+                            className={`transition-transform flex-shrink-0 ${showReferralDropdown ? "rotate-180" : ""}`}
                           />
                         </button>
 
@@ -715,7 +714,7 @@ export default function PaymentClient() {
                                 <button
                                   key={referral.code}
                                   onClick={() => selectReferral(referral.code)}
-                                  className="w-full px-4 py-3 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 font-medium text-gray-700 transition-colors"
+                                  className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 font-medium text-gray-700 transition-colors break-words"
                                 >
                                   {referral.code}
                                 </button>
@@ -728,44 +727,44 @@ export default function PaymentClient() {
                   </div>
                 )}
                 {referralError && (
-                  <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
-                    <X size={14} />
-                    {referralError}
+                  <p className="text-red-600 text-xs sm:text-sm mt-2 flex items-center gap-1">
+                    <X size={14} className="flex-shrink-0" />
+                    <span className="break-words">{referralError}</span>
                   </p>
                 )}
               </div>
             </div>
 
             {/* Right Column - Payment Methods */}
-            <div>
-              <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Select Payment Method</h3>
+            <div className="w-full">
+              <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-4 sm:p-6 w-full">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Select Payment Method</h3>
 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {/* Wallet */}
                   <div
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                    className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                       selectedMethod === "wallet"
                         ? "border-purple-500 bg-purple-50 shadow-md"
                         : "border-gray-200 hover:border-purple-300 hover:shadow-sm"
                     }`}
                     onClick={() => handlePaymentMethodSelect("wallet")}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-green-100">
-                        <Wallet className="w-6 h-6 text-green-600" />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-green-100 flex-shrink-0">
+                        <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-gray-900">My Wallet</h4>
-                        <p className="text-sm text-gray-600">Balance: ₦{formatNumber(walletBalance)}</p>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-sm sm:text-base text-gray-900">My Wallet</h4>
+                        <p className="text-xs sm:text-sm text-gray-600 break-words">Balance: ₦{formatNumber(walletBalance)}</p>
                       </div>
-                      {selectedMethod === "wallet" && <CheckCircle className="w-6 h-6" style={{ color: "#6b2fa5" }} />}
+                      {selectedMethod === "wallet" && <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#6b2fa5" }} />}
                     </div>
                   </div>
 
                   {/* Paystack */}
                   <div
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                    className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                       isFreeEvent
                         ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
                         : selectedMethod === "paystack"
@@ -774,28 +773,28 @@ export default function PaymentClient() {
                     }`}
                     onClick={() => handlePaymentMethodSelect("paystack")}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-100">
-                        <CreditCard className="w-6 h-6 text-blue-600" />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-blue-100 flex-shrink-0">
+                        <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-gray-900">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-sm sm:text-base text-gray-900 break-words">
                           Paystack
                           {isFreeEvent && <span className="ml-2 text-xs text-gray-500">(Not Available)</span>}
                         </h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-gray-600">
                           {isFreeEvent ? "Not available for free events" : "Card or bank transfer"}
                         </p>
                       </div>
                       {selectedMethod === "paystack" && !isFreeEvent && (
-                        <CheckCircle className="w-6 h-6" style={{ color: "#6b2fa5" }} />
+                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#6b2fa5" }} />
                       )}
                     </div>
                   </div>
 
                   {/* Agent Pay */}
                   <div
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                    className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                       isFreeEvent
                         ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
                         : selectedMethod === "agent"
@@ -804,12 +803,12 @@ export default function PaymentClient() {
                     }`}
                     onClick={() => handlePaymentMethodSelect("agent")}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-orange-100">
-                        <User className="w-6 h-6 text-orange-600" />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-orange-100 flex-shrink-0">
+                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-gray-900">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-sm sm:text-base text-gray-900 break-words">
                           Agent Pay
                           {isFreeEvent && <span className="ml-2 text-xs text-gray-500">(Not Available)</span>}
                           {!isFreeEvent && (
@@ -818,34 +817,34 @@ export default function PaymentClient() {
                             </span>
                           )}
                         </h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-gray-600">
                           {isFreeEvent ? "Not available for free events" : "Pay through verified agents"}
                         </p>
                       </div>
                       {selectedMethod === "agent" && !isFreeEvent && (
-                        <CheckCircle className="w-6 h-6" style={{ color: "#6b2fa5" }} />
+                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#6b2fa5" }} />
                       )}
                     </div>
                   </div>
 
                   {/* Bitcoin */}
                   <div
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                    className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                       selectedMethod === "bitcoin"
                         ? "border-purple-500 bg-purple-50 shadow-md"
                         : "border-gray-200 hover:border-purple-300 hover:shadow-sm"
                     }`}
                     onClick={() => handlePaymentMethodSelect("bitcoin")}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-yellow-100">
-                        <Bitcoin className="w-6 h-6 text-yellow-600" />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-yellow-100 flex-shrink-0">
+                        <Bitcoin className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-gray-900">Bitcoin</h4>
-                        <p className="text-sm text-gray-600">Pay with cryptocurrency</p>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-sm sm:text-base text-gray-900">Bitcoin</h4>
+                        <p className="text-xs sm:text-sm text-gray-600">Pay with cryptocurrency</p>
                       </div>
-                      {selectedMethod === "bitcoin" && <CheckCircle className="w-6 h-6" style={{ color: "#6b2fa5" }} />}
+                      {selectedMethod === "bitcoin" && <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#6b2fa5" }} />}
                     </div>
                   </div>
                 </div>
@@ -854,13 +853,13 @@ export default function PaymentClient() {
                 <button
                   onClick={handleProceedPayment}
                   disabled={!selectedMethod || creatingReference}
-                  className="w-full mt-6 py-4 text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  className="w-full mt-4 sm:mt-6 py-3 sm:py-4 text-sm sm:text-base text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   style={{ background: "#6b2fa5" }}
                 >
                   {creatingReference ? (
                     "Processing..."
                   ) : (
-                    <>
+                    <span className="break-words px-2">
                       Proceed with{" "}
                       {selectedMethod === "wallet"
                         ? "Wallet Payment"
@@ -871,11 +870,11 @@ export default function PaymentClient() {
                             : selectedMethod === "bitcoin"
                               ? "Bitcoin"
                               : "Payment"}
-                    </>
+                    </span>
                   )}
                 </button>
 
-                <p className="text-center text-xs text-gray-500 mt-4">
+                <p className="text-center text-xs text-gray-500 mt-3 sm:mt-4 break-words">
                   🔒 Your payment information is secure and encrypted
                 </p>
               </div>

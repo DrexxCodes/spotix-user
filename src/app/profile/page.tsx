@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Profile from "./client"
 
 export const metadata: Metadata = {
-  title: "Profile | Spotix",
+  title: "Profile",
   description: "View and manage your profile on Spotix",
   keywords: [
     "Spotix Profile",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Spotix User Account",
   ],
   openGraph: {
-    title: "Profile | Spotix",
+    title: "Profile",
     description: "View and manage your profile on Spotix",
     url: "https://spotix.com.ng/profile",
     siteName: "Spotix Nigeria",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Profile | Spotix",
+    title: "Profile",
     description: "View and manage your profile on Spotix",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },

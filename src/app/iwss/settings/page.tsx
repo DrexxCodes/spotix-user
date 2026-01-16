@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import IWSSSettings from "./client"
 
 export const metadata: Metadata = {
-  title: "IWSS Settings | Spotix",
+  title: "IWSS Settings",
   description: "Sign back into your Spotix Account. Access your events, tickets, and bookings on Nigeria's premier event management platform.",
   keywords: [
     "Spotix login",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Spotix account access",
   ],
   openGraph: {
-    title: "IWSS Settings | Spotix",
+    title: "IWSS Settings",
     description: "Manage your IWSS account.",
     url: "https://spotix.com.ng/iwss/settings",
     siteName: "Spotix Nigeria",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "IWSS Settings | Spotix",
+    title: "IWSS Settings",
     description: "Manage your IWSS account.",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },

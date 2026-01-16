@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import LoginClient from "./client"
 
 export const metadata: Metadata = {
-  title: "Login | Spotix",
+  title: "Login",
   description: "Sign back into your Spotix Account. Access your events, tickets, and bookings on Nigeria's premier event management platform.",
   keywords: [
     "Spotix login",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Spotix account access",
   ],
   openGraph: {
-    title: "Login | Spotix",
+    title: "Login",
     description: "Sign back into your Spotix Account. Access your events, tickets, and bookings.",
     url: "https://spotix.com.ng/auth/login",
     siteName: "Spotix Nigeria",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Login | Spotix",
+    title: "Login",
     description: "Sign back into your Spotix Account. Access your events, tickets, and bookings.",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },

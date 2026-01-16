@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import BookerConfirm from "./client"
 
 export const metadata: Metadata = {
-  title: "Become a Booker | Spotix",
+  title: "Become a Booker",
   description: "Become a booker on Nigeria's premier event management platform.",
   keywords: [
     "Spotix booker",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Spotix account access",
   ],
   openGraph: {
-    title: "Become a Booker | Spotix",
+    title: "Become a Booker",
     description: "Sign back into your Spotix Account. Access your events, tickets, and bookings.",
     url: "https://spotix.com.ng/booker-confirm",
     siteName: "Spotix Nigeria",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Become a Booker | Spotix",
+    title: "Become a Booker",
     description: "Sign back into your Spotix Account. Access your events, tickets, and bookings.",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },

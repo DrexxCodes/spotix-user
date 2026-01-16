@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import TicketHistoryClient from "./client"
 
 export const metadata: Metadata = {
-  title: "Ticket History | Spotix",
+  title: "Ticket History",
   description: "View and manage your ticket history. Track all your purchased tickets and their details.",
   keywords: [
     "Spotix referrals",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "referral earnings",
   ],
   openGraph: {
-    title: "Ticket History | Spotix",
+    title: "Ticket History",
     description: "View and manage your ticket history. Track all your purchased tickets and their details.",
     url: "https://spotix.com.ng/ticket-history",
     siteName: "Spotix Nigeria",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ticket History | Spotix",
+    title: "Ticket History",
     description: "View and manage your ticket history. Track all your purchased tickets and their details.",
     images: ["https://i.postimg.cc/FR5xpcpZ/hero.jpg"],
   },
