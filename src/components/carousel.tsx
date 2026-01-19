@@ -10,22 +10,22 @@ const ImageCarousels = () => {
 
   const slides = [
     {
-      image: '/carousel (1).jpg',
+      image: '/carousel(1).jpg',
       link: 'https://booker.spotix.com.ng/create-event',
       alt: 'Carousel slide 1'
     },
     {
-      image: '/carousel (2).jpg',
+      image: '/carousel(2).jpg',
       link: 'https://spotix.com.ng/Referrals',
       alt: 'Carousel slide 2'
     },
     {
-      image: '/carousel (3).jpg',
+      image: '/carousel(3).jpg',
       link: 'https://booker.spotix.com.ng/listings',
       alt: 'Carousel slide 3'
     },
     {
-      image: '/carousel (4).jpg',
+      image: '/carousel(4).jpg',
       link: 'https://instagram.com/spotixnigeria',
       alt: 'Carousel slide 4'
     }
