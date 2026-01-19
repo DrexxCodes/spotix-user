@@ -18,6 +18,7 @@ import MerchSection from "./merch-section"
 import { formatNumber } from "@/utils/formatter"
 import { ReportModal } from "./report-modal"
 import { ImageCarousel } from "./image-carousel"
+import ImageCarousels from "@/components/carousel"
 
 interface EventType {
   id: string
@@ -510,8 +511,8 @@ const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
     sessionStorage.setItem("spotix_payment_data", JSON.stringify(paymentData))
   }
 
-  console.log("✅ Payment data stored in sessionStorage:", paymentData)
-  console.log("🚀 Navigating to payment page...")
+  console.log("Payment data stored in sessionStorage:", paymentData)
+  console.log("Navigating to payment page...")
 
   // Close the buy ticket dialog
   setShowBuyTicketDialog(false)
@@ -613,6 +614,11 @@ const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Image Carousel */}
+        <div className="mt-6 px-4 sm:px-6 lg:px-8">
+          <ImageCarousels />
         </div>
 
         {/* Main Content - Two Column Layout for Desktop */}

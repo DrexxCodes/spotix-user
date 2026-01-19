@@ -21,6 +21,7 @@ import UserHeader from "@/components/UserHeader"
 import Footer from "@/components/footer"
 import { collection, getDocs, doc, getDoc } from "firebase/firestore"
 import PayWithPaystack from "@/components/PayWithPaystack"
+import { calculateVATFee } from "@/utils/priceUtility"
 
 interface PaymentData {
   eventId: string
@@ -346,6 +347,7 @@ export default function PaymentClient() {
         throw new Error("Authentication required")
       }
 
+      // Calculate discount amount
       let discountAmount = 0
       if (discountData) {
         if (discountData.discountType === "percentage") {
@@ -356,8 +358,11 @@ export default function PaymentClient() {
       }
 
       const subtotal = paymentData.ticketPrice - discountAmount
-      const transactionFee = paymentData.ticketPrice === 0 ? 0 : 150
-      const totalAmount = subtotal + transactionFee
+      
+      // Calculate VAT fee (5% + 100) - this replaces the flat ₦150 transaction fee
+      // For free events, VAT is waived (0)
+      const vatFee = paymentData.ticketPrice === 0 ? 0 : calculateVATFee(Number(paymentData.ticketPrice))
+      const totalAmount = subtotal + vatFee
 
       const response = await fetch("/api/v1/create-pay-ref", {
         method: "POST",
@@ -371,7 +376,7 @@ export default function PaymentClient() {
           ticketPrice: paymentData.ticketPrice,
           ticketType: paymentData.ticketType,
           totalAmount: totalAmount,
-          transactionFee: transactionFee,
+          transactionFee: vatFee, // Send VAT fee as transactionFee to database
           discountCode: discountData?.code || null,
           discountData: discountData || null,
           referralCode: referralData?.code || null,
@@ -508,7 +513,10 @@ export default function PaymentClient() {
   }
 
   const isFreeEvent = paymentData.ticketPrice === 0
-  const transactionFee = isFreeEvent ? 0 : 150
+  
+  // Calculate VAT fee (5% + 100) instead of flat ₦150
+  // For free events, VAT is waived
+  const vatFee = isFreeEvent ? 0 : calculateVATFee(Number(paymentData.ticketPrice))
 
   let discountAmount = 0
   if (discountData) {
@@ -520,7 +528,7 @@ export default function PaymentClient() {
   }
 
   const subtotal = paymentData.ticketPrice - discountAmount
-  const totalAmount = subtotal + transactionFee
+  const totalAmount = subtotal + vatFee
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex flex-col">
@@ -590,10 +598,11 @@ export default function PaymentClient() {
                       </div>
                     )}
 
+                    {/* VAT Fee (replaces Transaction Fee) */}
                     <div className="flex justify-between text-sm sm:text-base text-gray-700">
-                      <span>Transaction Fee</span>
+                      <span>VAT</span>
                       <span className={`font-semibold whitespace-nowrap ${isFreeEvent ? "line-through text-gray-400" : ""}`}>
-                        ₦{formatNumber(150)}
+                        ₦{formatNumber(vatFee)}
                         {isFreeEvent && <span className="ml-2 text-green-600 no-underline text-xs">Waived</span>}
                       </span>
                     </div>

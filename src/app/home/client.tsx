@@ -10,6 +10,7 @@ import Footer from "../../components/footer"
 import FetchWallet from "../../components/fetch-wallet"
 import LoginButton from "../../components/LoginButton"
 import { Calendar, MapPin, Clock, Search, Filter, X } from "lucide-react"
+import ImageCarousels from "../../components/carousel"
 
 interface PublicEventType {
   eventName: string
@@ -577,6 +578,11 @@ const Home = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Image Carousel */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <ImageCarousels />
         </div>
 
         {/* Content Section */}

@@ -191,7 +191,7 @@ const Creators = () => {
         </div>
 
         {/* Bottom CTA */}
-        <div className={`text-center mt-20 transition-all duration-1000 ${
+        {/* <div className={`text-center mt-20 transition-all duration-1000 ${
           creatorInViews[1] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}>
           <p className="text-lg text-gray-600 mb-6">
@@ -216,7 +216,7 @@ const Creators = () => {
             </span>
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </button>
-        </div>
+        </div> */}
       </div>
     </section>
   )

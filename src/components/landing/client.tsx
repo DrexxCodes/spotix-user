@@ -11,7 +11,7 @@ import Features from "./Features";
 import Creators from "./Creators";
 import BookerCTA from "./BookerCTA";
 import Newsletter from "./News";
-import {Footer} from "./footer";
+import Footer from "@/components/footer";
 
 export default function LandingClient() {
   const [isLoaded, setIsLoaded] = useState(false);

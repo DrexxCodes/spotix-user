@@ -172,7 +172,7 @@ const Navbar = () => {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/pricing", label: "Pricing" },
-    { href: "https://blog.spotix.com.ng", label: "Blog" },
+    // { href: "https://blog.spotix.com.ng", label: "Blog" },
   ]
 
   return (

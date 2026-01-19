@@ -3,6 +3,7 @@
 import type React from "react"
 import { X, Ticket, AlertTriangle, ShoppingCart, CheckCircle, Clock, TrendingUp, Zap, Shield, Sparkles } from "lucide-react"
 import { formatCurrency } from "@/utils/formatter"
+import { calculateVATFee, calculateFinalPrice } from "@/utils/priceUtility"
 
 interface TicketType {
   policy: string
@@ -240,6 +241,12 @@ const BuyTicketDialog: React.FC<BuyTicketDialogProps> = ({
                     const remainingTickets = getRemainingTickets(ticket)
                     const isLowStock = remainingTickets !== null && remainingTickets <= 10 && remainingTickets > 0
                     const percentageSold = getPercentageSold(ticket)
+                    
+                    // Calculate VAT fee and final price
+                    // Convert ticket.price to number explicitly to ensure mathematical addition (not string concatenation)
+                    const ticketPrice = Number(ticket.price)
+                    const vatFee = ticketPrice > 0 ? calculateVATFee(ticketPrice) : 0
+                    const finalPrice = ticketPrice > 0 ? calculateFinalPrice(ticketPrice) : 0
 
                     return (
                       <div
@@ -270,7 +277,7 @@ const BuyTicketDialog: React.FC<BuyTicketDialogProps> = ({
                             )}
                           </div>
                           <div className="text-left sm:text-right flex-shrink-0">
-                            {ticket.price === 0 ? (
+                            {ticketPrice === 0 ? (
                               <div className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 py-2 rounded-xl font-bold shadow-md">
                                 <CheckCircle size={16} />
                                 FREE
@@ -278,13 +285,30 @@ const BuyTicketDialog: React.FC<BuyTicketDialogProps> = ({
                             ) : (
                               <div>
                                 <div className="text-3xl font-bold text-purple-600">
-                                  {formatCurrency(Number.parseFloat(String(ticket.price)))}
+                                  {formatCurrency(finalPrice)}
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">per ticket</p>
+                                <p className="text-xs text-gray-500 mt-1">final price</p>
                               </div>
                             )}
                           </div>
                         </div>
+
+                        {/* VAT Fee Notice */}
+                        {ticketPrice > 0 && (
+                          <div className="mb-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                            <div className="flex items-start gap-2">
+                              <Shield size={16} className="text-purple-600 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="text-sm text-gray-700">
+                                  <span className="font-semibold">Base price:</span> {formatCurrency(ticketPrice)}
+                                </p>
+                                <p className="text-sm text-purple-700 font-medium">
+                                  With an additional {formatCurrency(vatFee)} VAT fee
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Availability Info with Progress Bar */}
                         {remainingTickets !== null && (
@@ -403,25 +427,6 @@ const BuyTicketDialog: React.FC<BuyTicketDialogProps> = ({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 px-6 py-4 rounded-b-2xl border-t-2 border-purple-100 flex-shrink-0">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6">
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <Shield size={16} className="text-purple-600" />
-              <span className="font-medium">Secure Payment</span>
-            </div>
-            <div className="hidden sm:block w-1 h-4 bg-gray-300 rounded-full"></div>
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <CheckCircle size={16} className="text-purple-600" />
-              <span className="font-medium">Encrypted Transactions</span>
-            </div>
-            <div className="hidden sm:block w-1 h-4 bg-gray-300 rounded-full"></div>
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <Ticket size={16} className="text-purple-600" />
-              <span className="font-medium">Instant Confirmation</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )

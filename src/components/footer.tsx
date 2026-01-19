@@ -48,7 +48,7 @@ const Footer = () => {
                   Events
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <a 
                   href="/about" 
                   className="text-slate-300 hover:text-purple-400 transition-colors duration-200 text-sm"
@@ -63,7 +63,7 @@ const Footer = () => {
                 >
                   Contact
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -97,7 +97,7 @@ const Footer = () => {
               </li>
               <li>
                 <a 
-                  href="https://spotix-4u.web.app/pricing.html" 
+                  href="https://spotix.com.ng/pricing" 
                   className="text-slate-300 hover:text-purple-400 transition-colors duration-200 text-sm"
                 >
                   Pricing
@@ -110,7 +110,7 @@ const Footer = () => {
           <div className="flex flex-col">
             <h3 className="text-lg font-semibold mb-4 text-white">Connect</h3>
             <div className="flex flex-col space-y-3">
-              <a
+              {/* <a
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -120,9 +120,9 @@ const Footer = () => {
                   <Twitter className="w-4 h-4" />
                 </div>
                 <span>Twitter</span>
-              </a>
+              </a> */}
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/spotixnigeria"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-slate-300 hover:text-purple-400 transition-colors duration-200 text-sm group"
@@ -132,7 +132,7 @@ const Footer = () => {
                 </div>
                 <span>Instagram</span>
               </a>
-              <a
+              {/* <a
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -142,8 +142,8 @@ const Footer = () => {
                   <Facebook className="w-4 h-4" />
                 </div>
                 <span>Facebook</span>
-              </a>
-              <a
+              </a> */}
+              {/* <a
                 href="https://linkedin.com"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -153,7 +153,7 @@ const Footer = () => {
                   <Linkedin className="w-4 h-4" />
                 </div>
                 <span>LinkedIn</span>
-              </a>
+              </a> */}
             </div>
           </div>
         </div>
