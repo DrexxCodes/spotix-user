@@ -66,7 +66,7 @@ const IWSSSettings = () => {
   const fetchIWSSStatus = async (authUser: any) => {
     try {
       const token = await authUser.getIdToken()
-      const response = await fetch("/api/v1/v1/iwss/pin", {
+      const response = await fetch("/api/v1/iwss/pin", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,

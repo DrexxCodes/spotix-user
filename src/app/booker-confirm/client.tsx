@@ -366,7 +366,7 @@ const BookerConfirm = () => {
         )
       }
 
-      router.push("/profile")
+      router.push("https://booker.spotix.com.ng")
     } catch (error: any) {
       console.error("Error updating booker status:", error)
       setError(`Failed to update booker status: ${error.message || "Unknown error"}`)
