@@ -190,20 +190,6 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
                   </div>
                 </div>
 
-                {/* Trust Badge */}
-                <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-purple-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                      <Star size={18} className="text-amber-500" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Trust Level</p>
-                      <p className="text-sm font-bold text-gray-900">
-                        {bookerDetails.isVerified ? "Premium" : "Standard"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Trust Indicators */}

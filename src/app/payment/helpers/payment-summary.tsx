@@ -1,0 +1,165 @@
+"use client"
+
+import { Wallet, CreditCard, User, Bitcoin, CheckCircle } from "lucide-react"
+
+interface PaymentMethodsProps {
+  selectedMethod: string | null
+  walletBalance: number
+  isFreeEvent: boolean
+  creatingReference: boolean
+  onSelectMethod: (method: string) => void
+  onProceed: () => void
+}
+
+const formatNumber = (num: number): string => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+}
+
+export default function PaymentMethods({
+  selectedMethod,
+  walletBalance,
+  isFreeEvent,
+  creatingReference,
+  onSelectMethod,
+  onProceed,
+}: PaymentMethodsProps) {
+  return (
+    <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-4 sm:p-6 w-full">
+      <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">
+        {isFreeEvent ? "Confirm Registration" : "Select Payment Method"}
+      </h3>
+
+      {!isFreeEvent && (
+        <div className="space-y-3 sm:space-y-4">
+          {/* Wallet */}
+          <div
+            className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+              selectedMethod === "wallet"
+                ? "border-purple-500 bg-purple-50 shadow-md"
+                : "border-gray-200 hover:border-purple-300 hover:shadow-sm"
+            }`}
+            onClick={() => onSelectMethod("wallet")}
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-green-100 flex-shrink-0">
+                <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-sm sm:text-base text-gray-900">My Wallet</h4>
+                <p className="text-xs sm:text-sm text-gray-600 break-words">Balance: ₦{formatNumber(walletBalance)}</p>
+              </div>
+              {selectedMethod === "wallet" && (
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#6b2fa5" }} />
+              )}
+            </div>
+          </div>
+
+          {/* Paystack */}
+          <div
+            className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+              selectedMethod === "paystack"
+                ? "border-purple-500 bg-purple-50 shadow-md"
+                : "border-gray-200 hover:border-purple-300 hover:shadow-sm"
+            }`}
+            onClick={() => onSelectMethod("paystack")}
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-blue-100 flex-shrink-0">
+                <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-sm sm:text-base text-gray-900 break-words">Paystack</h4>
+                <p className="text-xs sm:text-sm text-gray-600">Card or bank transfer</p>
+              </div>
+              {selectedMethod === "paystack" && (
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#6b2fa5" }} />
+              )}
+            </div>
+          </div>
+
+          {/* Agent Pay */}
+          <div
+            className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+              selectedMethod === "agent"
+                ? "border-purple-500 bg-purple-50 shadow-md"
+                : "border-gray-200 hover:border-purple-300 hover:shadow-sm"
+            }`}
+            onClick={() => onSelectMethod("agent")}
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-orange-100 flex-shrink-0">
+                <User className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-sm sm:text-base text-gray-900 break-words">
+                  Agent Pay
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full font-semibold">
+                    NEW
+                  </span>
+                </h4>
+                <p className="text-xs sm:text-sm text-gray-600">Pay through verified agents</p>
+              </div>
+              {selectedMethod === "agent" && (
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#6b2fa5" }} />
+              )}
+            </div>
+          </div>
+
+          {/* Bitcoin */}
+          <div
+            className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+              selectedMethod === "bitcoin"
+                ? "border-purple-500 bg-purple-50 shadow-md"
+                : "border-gray-200 hover:border-purple-300 hover:shadow-sm"
+            }`}
+            onClick={() => onSelectMethod("bitcoin")}
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-yellow-100 flex-shrink-0">
+                <Bitcoin className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-sm sm:text-base text-gray-900">Bitcoin</h4>
+                <p className="text-xs sm:text-sm text-gray-600">Pay with cryptocurrency</p>
+              </div>
+              {selectedMethod === "bitcoin" && (
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#6b2fa5" }} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Proceed Button */}
+      <button
+        onClick={onProceed}
+        disabled={(!selectedMethod && !isFreeEvent) || creatingReference}
+        className="w-full mt-4 sm:mt-6 py-3 sm:py-4 text-sm sm:text-base text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        style={{ background: "#6b2fa5" }}
+      >
+        {creatingReference ? (
+          "Processing..."
+        ) : isFreeEvent ? (
+          <span className="break-words px-2">Register for Free Event</span>
+        ) : (
+          <span className="break-words px-2">
+            Proceed with{" "}
+            {selectedMethod === "wallet"
+              ? "Wallet Payment"
+              : selectedMethod === "paystack"
+                ? "Paystack"
+                : selectedMethod === "agent"
+                  ? "Agent Pay"
+                  : selectedMethod === "bitcoin"
+                    ? "Bitcoin"
+                    : "Payment"}
+          </span>
+        )}
+      </button>
+
+      <p className="text-center text-xs text-gray-500 mt-3 sm:mt-4 break-words">
+        🔒 Your {isFreeEvent ? "information" : "payment information"} is secure and encrypted
+      </p>
+    </div>
+  )
+}

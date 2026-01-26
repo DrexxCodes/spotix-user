@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { auth, db } from "@/app/lib/firebase"
 import { doc, getDoc } from "firebase/firestore"
 import { Loader2, CreditCard, AlertCircle } from "lucide-react"
@@ -44,10 +44,12 @@ export default function PayWithPaystack({
   const [showPhoneNumberModal, setShowPhoneNumberModal] = useState(false)
   const [checkingPhone, setCheckingPhone] = useState(true)
   const [scriptLoaded, setScriptLoaded] = useState(false)
+  const [paymentInitialized, setPaymentInitialized] = useState(false)
 
   // Load Paystack inline script
   useEffect(() => {
     if (window.PaystackPop) {
+      console.log("Paystack already loaded")
       setScriptLoaded(true)
       setLoading(false)
       return
@@ -57,10 +59,12 @@ export default function PayWithPaystack({
     script.src = "https://js.paystack.co/v1/inline.js"
     script.async = true
     script.onload = () => {
+      console.log("Paystack script loaded successfully")
       setScriptLoaded(true)
       setLoading(false)
     }
     script.onerror = () => {
+      console.error("Failed to load Paystack script")
       setError("Failed to load Paystack. Please check your internet connection.")
       setLoading(false)
     }
@@ -93,14 +97,16 @@ export default function PayWithPaystack({
           const userPhone = userData.phoneNumber
 
           if (userPhone && userPhone.trim() !== "") {
+            console.log("Phone number found:", userPhone)
             setPhoneNumber(userPhone)
             setCheckingPhone(false)
           } else {
-            // No phone number, show modal
+            console.log("No phone number found, showing modal")
             setShowPhoneNumberModal(true)
             setCheckingPhone(false)
           }
         } else {
+          console.log("User document not found, showing phone modal")
           setShowPhoneNumberModal(true)
           setCheckingPhone(false)
         }
@@ -115,17 +121,27 @@ export default function PayWithPaystack({
   }, [])
 
   const handlePhoneNumberAdded = (phone: string) => {
+    console.log("Phone number added:", phone)
     setPhoneNumber(phone)
     setShowPhoneNumberModal(false)
   }
 
-  const initializePayment = () => {
+  // Memoize the initialization function
+  const initializePayment = useCallback(() => {
+    console.log("Attempting to initialize payment...")
+    console.log("PaystackPop available:", !!window.PaystackPop)
+    console.log("Phone number:", phoneNumber)
+    console.log("Reference:", reference)
+    console.log("Amount:", amount)
+
     if (!window.PaystackPop) {
+      console.error("Paystack not loaded")
       setError("Paystack is not loaded. Please refresh the page.")
       return
     }
 
     if (!phoneNumber) {
+      console.log("No phone number, showing modal")
       setShowPhoneNumberModal(true)
       return
     }
@@ -133,11 +149,13 @@ export default function PayWithPaystack({
     const paystackPublicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
 
     if (!paystackPublicKey) {
+      console.error("Paystack public key not configured")
       setError("Payment configuration error. Please contact support.")
       return
     }
 
     try {
+      console.log("Setting up Paystack handler...")
       const handler = window.PaystackPop.setup({
         key: paystackPublicKey,
         email: email,
@@ -206,29 +224,43 @@ export default function PayWithPaystack({
           onSuccess(response.reference)
         },
         onClose: () => {
-          console.log("Payment modal closed")
+          console.log("Payment modal closed by user")
           onClose()
         },
       })
 
+      console.log("Opening Paystack iframe...")
       handler.openIframe()
+      setPaymentInitialized(true)
     } catch (error) {
       console.error("Error initializing payment:", error)
       setError("Failed to initialize payment. Please try again.")
     }
-  }
+  }, [email, amount, reference, metadata, phoneNumber, onSuccess, onClose])
 
   // Auto-initialize payment when ready
   useEffect(() => {
-    if (scriptLoaded && !checkingPhone && phoneNumber && !error) {
+    console.log("Payment initialization check:", {
+      scriptLoaded,
+      checkingPhone,
+      phoneNumber: !!phoneNumber,
+      error: !!error,
+      paymentInitialized,
+    })
+
+    if (scriptLoaded && !checkingPhone && phoneNumber && !error && !paymentInitialized) {
+      console.log("All conditions met, initializing payment in 500ms...")
       // Small delay to ensure everything is ready
       const timer = setTimeout(() => {
         initializePayment()
       }, 500)
 
-      return () => clearTimeout(timer)
+      return () => {
+        console.log("Cleaning up initialization timer")
+        clearTimeout(timer)
+      }
     }
-  }, [scriptLoaded, checkingPhone, phoneNumber, error])
+  }, [scriptLoaded, checkingPhone, phoneNumber, error, paymentInitialized, initializePayment])
 
   if (showPhoneNumberModal) {
     return (
@@ -268,6 +300,7 @@ export default function PayWithPaystack({
               onClick={() => {
                 setError(null)
                 setLoading(true)
+                setPaymentInitialized(false)
                 window.location.reload()
               }}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all"
@@ -308,5 +341,24 @@ export default function PayWithPaystack({
     )
   }
 
-  return null
+  // Show a minimal loading state while Paystack iframe opens
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <div className="flex flex-col items-center text-center">
+          <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mb-4">
+            <CreditCard className="w-8 h-8 text-purple-600 animate-pulse" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Opening Payment Gateway...</h3>
+          <p className="text-gray-600 mb-6">The Paystack payment window should open shortly</p>
+          <button
+            onClick={onClose}
+            className="text-sm text-gray-500 hover:text-gray-700 underline"
+          >
+            Cancel Payment
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
