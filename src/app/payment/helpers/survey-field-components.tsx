@@ -26,7 +26,7 @@ export function ShortTextField({ question, value, onChange, error }: BaseFieldPr
         type="text"
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-slate-900 ${
           error
             ? "border-red-300 focus:ring-red-500 focus:border-red-500"
             : "border-slate-200 focus:ring-[#6b2fa5] focus:border-[#6b2fa5]"
@@ -55,7 +55,7 @@ export function LongTextField({ question, value, onChange, error }: BaseFieldPro
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
         rows={4}
-        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 resize-none ${
+        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 resize-none text-slate-900 ${
           error
             ? "border-red-300 focus:ring-red-500 focus:border-red-500"
             : "border-slate-200 focus:ring-[#6b2fa5] focus:border-[#6b2fa5]"
@@ -84,7 +84,7 @@ export function NumberField({ question, value, onChange, error }: BaseFieldProps
         type="number"
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-slate-900 ${
           error
             ? "border-red-300 focus:ring-red-500 focus:border-red-500"
             : "border-slate-200 focus:ring-[#6b2fa5] focus:border-[#6b2fa5]"
@@ -233,7 +233,7 @@ export function PhoneField({ question, value, onChange, error }: BaseFieldProps)
         value={value || ""}
         onChange={(e) => handleChange(e.target.value)}
         onBlur={() => setTouched(true)}
-        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-slate-900 ${
           error || showValidationError
             ? "border-red-300 focus:ring-red-500 focus:border-red-500"
             : "border-slate-200 focus:ring-[#6b2fa5] focus:border-[#6b2fa5]"
@@ -244,6 +244,90 @@ export function PhoneField({ question, value, onChange, error }: BaseFieldProps)
         <div className="flex items-center gap-2 text-sm text-red-600">
           <AlertCircle className="w-4 h-4" />
           {error || "Please enter a valid phone number (10-15 digits)"}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Date Input
+export function DateField({ question, value, onChange, error }: BaseFieldProps) {
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-slate-900">
+        {question.questionText}
+        {question.required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <input
+        type="date"
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-slate-900 ${
+          error
+            ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+            : "border-slate-200 focus:ring-[#6b2fa5] focus:border-[#6b2fa5]"
+        }`}
+      />
+      {error && (
+        <div className="flex items-center gap-2 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4" />
+          {error}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Time Input
+export function TimeField({ question, value, onChange, error }: BaseFieldProps) {
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-slate-900">
+        {question.questionText}
+        {question.required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <input
+        type="time"
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-slate-900 ${
+          error
+            ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+            : "border-slate-200 focus:ring-[#6b2fa5] focus:border-[#6b2fa5]"
+        }`}
+      />
+      {error && (
+        <div className="flex items-center gap-2 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4" />
+          {error}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// DateTime Input
+export function DateTimeField({ question, value, onChange, error }: BaseFieldProps) {
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-slate-900">
+        {question.questionText}
+        {question.required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <input
+        type="datetime-local"
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-slate-900 ${
+          error
+            ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+            : "border-slate-200 focus:ring-[#6b2fa5] focus:border-[#6b2fa5]"
+        }`}
+      />
+      {error && (
+        <div className="flex items-center gap-2 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4" />
+          {error}
         </div>
       )}
     </div>

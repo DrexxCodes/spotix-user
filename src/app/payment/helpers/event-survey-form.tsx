@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { FileText, Loader2, CheckCircle, AlertCircle } from "lucide-react"
-import { ShortTextField, LongTextField, NumberField, RadioField, CheckboxField, PhoneField } from "./survey-field-components"
+import { ShortTextField, LongTextField, NumberField, RadioField, CheckboxField, PhoneField, DateField, TimeField, DateTimeField } from "./survey-field-components"
 
 interface Question {
   id: string
   questionText: string
-  questionType: "short" | "long" | "number" | "radio" | "checkbox" | "phone"
+  questionType: "short" | "long" | "number" | "radio" | "checkbox" | "phone" | "date" | "time" | "datetime"
   options?: string[]
   required: boolean
 }
@@ -58,7 +58,7 @@ export default function EventSurveyForm({
     try {
       setLoading(true)
       const response = await fetch(
-        `/api/v1/survey?userId=${userId}&eventId=${eventId}&ticketType=${encodeURIComponent(ticketType)}`,
+        `/api/survey/user?userId=${userId}&eventId=${eventId}&ticketType=${encodeURIComponent(ticketType)}`,
       )
       const data = await response.json()
 
@@ -151,6 +151,12 @@ export default function EventSurveyForm({
         return <CheckboxField {...commonProps} question={{ ...question, options: question.options || [] }} />
       case "phone":
         return <PhoneField {...commonProps} />
+      case "date":
+        return <DateField {...commonProps} />
+      case "time":
+        return <TimeField {...commonProps} />
+      case "datetime":
+        return <DateTimeField {...commonProps} />
       default:
         return <ShortTextField {...commonProps} />
     }
