@@ -1,0 +1,148 @@
+/* SPOTIX Preloader Styles */
+
+/* Import fancy fonts from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Cinzel:wght@700;900&family=Cormorant+Garamond:wght@700&display=swap');
+
+/* Draw and Erase Animation */
+@keyframes draw-erase {
+  0% {
+    stroke-dashoffset: 2000;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  45% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  55% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -2000;
+    opacity: 0;
+  }
+}
+
+.spotix-text {
+  animation: draw-erase 5s ease-in-out infinite;
+}
+
+/* Alternative: Faster animation (3.5 seconds) */
+@keyframes draw-erase-fast {
+  0% {
+    stroke-dashoffset: 2000;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  40% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  60% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -2000;
+    opacity: 0;
+  }
+}
+
+.spotix-text-fast {
+  animation: draw-erase-fast 3.5s ease-in-out infinite;
+}
+
+/* Alternative: Smooth continuous (no pause) */
+@keyframes draw-erase-smooth {
+  0% {
+    stroke-dashoffset: 2000;
+  }
+  50% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -2000;
+  }
+}
+
+.spotix-text-smooth {
+  animation: draw-erase-smooth 6s linear infinite;
+}
+
+/* Alternative: Elegant slow animation */
+@keyframes draw-erase-elegant {
+  0% {
+    stroke-dashoffset: 2000;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  45% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  55% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -2000;
+    opacity: 0;
+  }
+}
+
+.spotix-text-elegant {
+  animation: draw-erase-elegant 7s ease-in-out infinite;
+}
+
+/* Font alternatives - uncomment the one you prefer */
+
+/* Option 1: Playfair Display (Elegant serif) - DEFAULT */
+.spotix-text {
+  font-family: 'Playfair Display', 'Georgia', serif;
+}
+
+/* Option 2: Cinzel (Roman style - very fancy) */
+/* 
+.spotix-text {
+  font-family: 'Cinzel', 'Georgia', serif;
+}
+*/
+
+/* Option 3: Cormorant Garamond (Classic elegant) */
+/*
+.spotix-text {
+  font-family: 'Cormorant Garamond', 'Georgia', serif;
+}
+*/
+
+/* Option 4: Ultra bold custom */
+/*
+@import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
+.spotix-text {
+  font-family: 'Righteous', cursive;
+}
+*/
+
+/* Option 5: Modern luxury */
+/*
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&display=swap');
+.spotix-text {
+  font-family: 'Josefin Sans', sans-serif;
+}
+*/

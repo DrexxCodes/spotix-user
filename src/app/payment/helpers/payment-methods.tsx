@@ -80,7 +80,7 @@ export default function PaymentMethods({
           </div>
 
           {/* Agent Pay */}
-          <div
+          {/* <div
             className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
               selectedMethod === "agent"
                 ? "border-purple-500 bg-purple-50 shadow-md"
@@ -105,10 +105,10 @@ export default function PaymentMethods({
                 <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#6b2fa5" }} />
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* Bitcoin */}
-          <div
+          {/* <div
             className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
               selectedMethod === "bitcoin"
                 ? "border-purple-500 bg-purple-50 shadow-md"
@@ -128,7 +128,7 @@ export default function PaymentMethods({
                 <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#6b2fa5" }} />
               )}
             </div>
-          </div>
+          </div> */}
         </div>
       )}
 
@@ -177,10 +177,10 @@ export default function PaymentMethods({
               ? "Wallet Payment"
               : selectedMethod === "paystack"
                 ? "Paystack"
-                : selectedMethod === "agent"
-                  ? "Agent Pay"
-                  : selectedMethod === "bitcoin"
-                    ? "Bitcoin"
+                // : selectedMethod === "agent"
+                //   ? "Agent Pay"
+                //   : selectedMethod === "bitcoin"
+                //     ? "Bitcoin"
                     : "Payment"}
           </span>
         )}

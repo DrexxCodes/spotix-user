@@ -58,7 +58,7 @@ export default function EventSurveyForm({
     try {
       setLoading(true)
       const response = await fetch(
-        `/api/survey/user?userId=${userId}&eventId=${eventId}&ticketType=${encodeURIComponent(ticketType)}`,
+        `/api/v1/survey?userId=${userId}&eventId=${eventId}&ticketType=${encodeURIComponent(ticketType)}`,
       )
       const data = await response.json()
 

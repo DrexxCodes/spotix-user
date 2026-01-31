@@ -1,69 +1,100 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
+import { useEffect, useState } from "react"
+import "./preloader.css"
 
-const Preloader = () => {
-  const [isLoading, setIsLoading] = useState(true)
-  const [fadeOut, setFadeOut] = useState(false)
+interface PreloaderProps {
+  onLoadingComplete?: () => void
+  minDisplayTime?: number // Minimum time to show preloader (ms)
+}
+
+export default function Preloader({ onLoadingComplete, minDisplayTime = 5000 }: PreloaderProps) {
+  const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
-    // Wait for window to fully load
-    const handleLoad = () => {
-      // Start fade out animation
-      setFadeOut(true)
-      
-      // Remove preloader after animation completes
-      setTimeout(() => {
-        setIsLoading(false)
-      }, 500) // Match this with animation duration
-    }
+    const timer = setTimeout(() => {
+      setIsVisible(false)
+      if (onLoadingComplete) {
+        setTimeout(onLoadingComplete, 500) // Wait for fade out
+      }
+    }, minDisplayTime)
 
-    // Check if page is already loaded
-    if (document.readyState === "complete") {
-      handleLoad()
-    } else {
-      window.addEventListener("load", handleLoad)
-    }
+    return () => clearTimeout(timer)
+  }, [minDisplayTime, onLoadingComplete])
 
-    // Fallback: Remove preloader after 3 seconds even if load event doesn't fire
-    const fallbackTimeout = setTimeout(() => {
-      handleLoad()
-    }, 3000)
-
-    return () => {
-      window.removeEventListener("load", handleLoad)
-      clearTimeout(fallbackTimeout)
-    }
-  }, [])
-
-  if (!isLoading) return null
+  if (!isVisible) return null
 
   return (
-    <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-[#6b2fa5] via-purple-600 to-purple-800 transition-opacity duration-500 ${
-        fadeOut ? "opacity-0" : "opacity-100"
-      }`}
-    >
-      {/* Animated background gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)] animate-pulse" />
-      
-      {/* Preloader content */}
-      <div className="relative flex flex-col items-center space-y-6">
-        {/* Preloader GIF */}
-        <div className="relative w-32 h-32">
-          <Image
-            src="/preloader.gif"
-            alt="Loading..."
-            fill
-            className="object-contain"
-            priority
-            unoptimized // Keep GIF animated
-          />
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-[#6b2fa5] via-purple-600 to-[#5a2589] animate-in fade-in duration-300">
+      <div className="relative">
+        {/* Main SPOTIX Text */}
+        <svg
+          width="600"
+          height="200"
+          viewBox="0 0 600 200"
+          className="w-[300px] sm:w-[400px] md:w-[500px] lg:w-[600px]"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            {/* Gradient for stroke */}
+            <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+              <stop offset="50%" stopColor="#f0e6ff" stopOpacity="1" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
+            </linearGradient>
+
+            {/* Glow filter */}
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* SPOTIX Text - Fancy serif-style font */}
+          <text
+            x="50%"
+            y="50%"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="none"
+            stroke="url(#textGradient)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            filter="url(#glow)"
+            className="spotix-text"
+            style={{
+              fontFamily: "'Playfair Display', 'Georgia', serif",
+              fontSize: "120px",
+              fontWeight: "700",
+              letterSpacing: "8px",
+              strokeDasharray: 2000,
+              strokeDashoffset: 2000,
+            }}
+          >
+            SPOTIX
+          </text>
+        </svg>
+
+        {/* Animated dots below */}
+        <div className="flex items-center gap-2 justify-center mt-8">
+          <div
+            className="w-3 h-3 bg-white rounded-full animate-bounce"
+            style={{ animationDelay: "0ms" }}
+          ></div>
+          <div
+            className="w-3 h-3 bg-white rounded-full animate-bounce"
+            style={{ animationDelay: "150ms" }}
+          ></div>
+          <div
+            className="w-3 h-3 bg-white rounded-full animate-bounce"
+            style={{ animationDelay: "300ms" }}
+          ></div>
         </div>
       </div>
     </div>
   )
 }
-
-export default Preloader

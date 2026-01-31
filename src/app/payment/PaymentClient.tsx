@@ -422,7 +422,7 @@ export default function PaymentClient() {
       // Submit survey responses if they exist
       if (surveyResponses && Object.keys(surveyResponses).length > 0) {
         try {
-          await fetch("/api/survey/response", {
+          await fetch("/api/v1/survey/response", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -482,7 +482,7 @@ export default function PaymentClient() {
     // Submit survey responses if they exist
     if (surveyResponses && Object.keys(surveyResponses).length > 0) {
       try {
-        await fetch("/api/survey/response", {
+        await fetch("/api/v1/survey/response", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
