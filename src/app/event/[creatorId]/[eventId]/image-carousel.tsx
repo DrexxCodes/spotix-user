@@ -6,12 +6,11 @@ import { useState, useRef } from "react"
 import { Maximize2, X, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface ImageCarouselProps {
-  mainImage: string
-  additionalImages?: string[]
+  images: string[]
   eventName: string
 }
 
-export function ImageCarousel({ mainImage, additionalImages = [], eventName }: ImageCarouselProps) {
+export function ImageCarousel({ images, eventName }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
@@ -20,7 +19,6 @@ export function ImageCarousel({ mainImage, additionalImages = [], eventName }: I
   const [dragStart, setDragStart] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const images = [mainImage, ...additionalImages].filter(Boolean)
   const hasMultipleImages = images.length > 1
 
   const handlePrevious = () => {

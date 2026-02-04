@@ -3,7 +3,7 @@
 import type React from "react"
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore"
+import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore"
 import { db, auth } from "../../../lib/firebase"
 import UserHeader from "@/components/UserHeader"
 import Footer from "@/components/footer"
@@ -49,6 +49,14 @@ interface EventType {
   likes?: number
   likedBy?: string[]
   allowAgents?: boolean
+}
+
+interface ClientPageProps {
+  params: {
+    creatorId: string
+    eventId: string
+  }
+  initialEventData?: EventType | null
 }
 
 const LazyImage: React.FC<{
@@ -156,24 +164,17 @@ const Preloader = () => (
   <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
     <div className="text-center">
       <img src="/preloader.gif" alt="Loading..." className="w-24 h-24 mx-auto mb-4" />
-      <p className="text-purple-600 font-medium">Loading event details...</p>
+      <p className="text-[#6b2fa5] font-medium">Loading event details...</p>
     </div>
   </div>
 )
 
-export default function ClientPage({
-  params,
-}: {
-  params: {
-    creatorId: string
-    eventId: string
-  }
-}) {
+export default function ClientPage({ params, initialEventData }: ClientPageProps) {
   const { creatorId, eventId } = params
   const router = useRouter()
 
-  const [eventData, setEventData] = useState<EventType | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [eventData, setEventData] = useState<EventType | null>(initialEventData || null)
+  const [loading, setLoading] = useState(!initialEventData)
   const [walletBalance, setWalletBalance] = useState<number>(0)
   const [isSoldOut, setIsSoldOut] = useState(false)
   const [isSaleEnded, setIsSaleEnded] = useState(false)
@@ -219,7 +220,7 @@ export default function ClientPage({
     return now > endDate
   }, [eventData])
 
-  // Fetch Event Data
+  // Fetch Event Data using API
   useEffect(() => {
     const fetchEventData = async () => {
       try {
@@ -235,15 +236,22 @@ export default function ClientPage({
           }
         }
 
-        const eventDocRef = doc(db, "events", creatorId, "userEvents", eventId)
-        const eventDoc = await getDoc(eventDocRef)
-
-        if (!eventDoc.exists()) {
+        // Fetch from API
+        const response = await fetch(`/api/v1/event?creatorId=${creatorId}&eventId=${eventId}`)
+        
+        if (!response.ok) {
           router.push("/404")
           return
         }
 
-        const data = { id: eventDoc.id, ...eventDoc.data() } as EventType
+        const result = await response.json()
+        
+        if (!result.success) {
+          router.push("/404")
+          return
+        }
+
+        const data = result.data as EventType
         setEventData(data)
         setLikeCount(data.likes || 0)
 
@@ -263,31 +271,42 @@ export default function ClientPage({
         }
       } catch (error) {
         console.error("Error fetching event data:", error)
+        router.push("/404")
       } finally {
         setLoading(false)
       }
     }
 
-    fetchEventData()
-  }, [creatorId, eventId, router, cacheKey, cacheDuration])
+    // Only fetch if we don't have initial data
+    if (!initialEventData) {
+      fetchEventData()
+    } else {
+      // Set like status for initial data
+      const currentUser = auth.currentUser
+      if (currentUser && initialEventData.likedBy?.includes(currentUser.uid)) {
+        setIsLiked(true)
+      }
+      setLikeCount(initialEventData.likes || 0)
+    }
+  }, [creatorId, eventId, router, cacheKey, cacheDuration, initialEventData])
 
-  // Fetch booker details
+  // Fetch booker details using API
   useEffect(() => {
     if (!eventData?.createdBy) return
 
     const fetchBookerDetails = async () => {
       try {
-        const userDocRef = doc(db, "users", eventData.createdBy)
-        const userDoc = await getDoc(userDocRef)
+        const response = await fetch(`/api/v1/event/creator?creatorId=${eventData.createdBy}`)
+        
+        if (!response.ok) {
+          console.error("Failed to fetch booker details")
+          return
+        }
 
-        if (userDoc.exists()) {
-          const userData = userDoc.data()
-          setBookerDetails({
-            username: userData.username || "Unknown",
-            email: userData.email || "",
-            phone: userData.phone || "",
-            isVerified: userData.isVerified || false,
-          })
+        const result = await response.json()
+        
+        if (result.success) {
+          setBookerDetails(result.data)
         }
       } catch (error) {
         console.error("Error fetching booker details:", error)
@@ -297,13 +316,31 @@ export default function ClientPage({
     fetchBookerDetails()
   }, [eventData?.createdBy])
 
+  // Prevent body scroll when buy ticket dialog is open
+  useEffect(() => {
+    if (showBuyTicketDialog) {
+      // Prevent scrolling
+      document.body.style.overflow = 'hidden'
+    } else {
+      // Re-enable scrolling
+      document.body.style.overflow = 'unset'
+    }
+
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [showBuyTicketDialog])
+
   // Check authentication and fetch user data
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         setIsAuthenticated(true)
         try {
+          // Fetch user data from API (you may want to create an API endpoint for this too)
           const userDocRef = doc(db, "users", user.uid)
+          const { getDoc } = await import("firebase/firestore")
           const userDoc = await getDoc(userDocRef)
 
           if (userDoc.exists()) {
@@ -399,23 +436,20 @@ export default function ClientPage({
       return
     }
 
-    if (isLiking) return
+    if (isLiking || !eventData) return
 
     setIsLiking(true)
-    const currentUser = auth.currentUser
-
-    if (!currentUser) {
-      setIsLiking(false)
-      return
-    }
 
     try {
+      const currentUser = auth.currentUser
+      if (!currentUser) return
+
       const eventDocRef = doc(db, "events", creatorId, "userEvents", eventId)
 
       if (isLiked) {
         // Unlike
         await updateDoc(eventDocRef, {
-          likes: Math.max(0, likeCount - 1),
+          likes: (eventData.likes || 1) - 1,
           likedBy: arrayRemove(currentUser.uid),
         })
         setIsLiked(false)
@@ -423,7 +457,7 @@ export default function ClientPage({
       } else {
         // Like
         await updateDoc(eventDocRef, {
-          likes: likeCount + 1,
+          likes: (eventData.likes || 0) + 1,
           likedBy: arrayUnion(currentUser.uid),
         })
         setIsLiked(true)
@@ -431,95 +465,22 @@ export default function ClientPage({
       }
 
       // Update cache
-      if (eventData) {
-        const updatedData = {
-          ...eventData,
-          likes: isLiked ? Math.max(0, likeCount - 1) : likeCount + 1,
-          likedBy: isLiked
-            ? (eventData.likedBy || []).filter((id) => id !== currentUser.uid)
-            : [...(eventData.likedBy || []), currentUser.uid],
-        }
-        sessionStorage.setItem(
-          cacheKey,
-          JSON.stringify({
-            data: updatedData,
-            timestamp: Date.now(),
-          }),
-        )
-      }
+      sessionStorage.removeItem(cacheKey)
     } catch (error) {
       console.error("Error toggling like:", error)
-      // Revert on error
-      setIsLiked(!isLiked)
-      setLikeCount((prev) => (isLiked ? prev + 1 : Math.max(0, prev - 1)))
+      alert("Failed to update like. Please try again.")
     } finally {
       setIsLiking(false)
     }
   }
 
-
-const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
-  if (!eventData) {
-    console.error("No event data available")
-    return
-  }
-
-  // Check if event has passed
-  if (isEventPassed) {
-    setShowPassedDialog(true)
-    return
-  }
-
-  // Check if sold out
-  if (isSoldOut) {
-    alert("Sorry, this event is sold out!")
-    return
-  }
-
-  // Check if sales ended
-  if (isSaleEnded) {
-    alert("Sorry, ticket sales have ended for this event!")
-    return
-  }
-
-  // Check if user is authenticated
-  if (!isAuthenticated) {
-    // Save current path to redirect back after login
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem("redirectAfterLogin", window.location.pathname)
+  const handleBuyTicket = () => {
+    if (!isAuthenticated) {
+      alert("Please login to purchase tickets")
+      return
     }
-    router.push("/auth/login")
-    return
+    router.push(`/event/${creatorId}/${eventId}/buy-ticket`)
   }
-
-  // Ensure price is a number
-  const parsedPrice = typeof ticketPrice === "string" 
-    ? parseFloat(ticketPrice) 
-    : ticketPrice
-
-
-  const paymentData = {
-    eventId: eventId,
-    eventName: eventData.eventName,
-    ticketType: ticketType,
-    ticketPrice: parsedPrice,
-    eventCreatorId: creatorId,
-  }
-
-  // Store in sessionStorage for the payment page to read
-  if (typeof window !== 'undefined') {
-    sessionStorage.setItem("spotix_payment_data", JSON.stringify(paymentData))
-  }
-
-  console.log("Payment data stored in sessionStorage:", paymentData)
-  console.log("Navigating to payment page...")
-
-  // Close the buy ticket dialog
-  setShowBuyTicketDialog(false)
-
-  // Navigate to payment page
-  router.push("/payment")
-}
 
   const handleShowPassedDialog = () => {
     setShowPassedDialog(true)
@@ -534,131 +495,85 @@ const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
   }
 
   if (loading) {
-    return (
-      <>
-        <UserHeader />
-        <EventSkeleton />
-      </>
-    )
+    return <EventSkeleton />
   }
 
   if (!eventData) {
     return (
-      <>
-        <UserHeader />
-        <div className="max-w-7xl mx-auto p-4 text-center py-20">
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
           <AlertCircle size={64} className="text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Event Not Found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Event Not Found</h2>
           <p className="text-gray-600 mb-6">The event you're looking for doesn't exist or has been removed.</p>
           <button
             onClick={() => router.push("/home")}
-            className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-[#6b2fa5] text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
             Browse Events
           </button>
         </div>
-      </>
+      </div>
     )
   }
 
   return (
     <>
       <UserHeader />
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
-        {/* Header Section - Full Width */}
-        <div className="bg-white shadow-sm sticky top-0 z-40 border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between py-4">
+
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 py-6 lg:py-8">
+          {/* Header with Back Button */}
+          <div className="flex items-center justify-between mb-6">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-gray-600 hover:text-[#6b2fa5] transition-colors group"
+            >
+              <div className="p-2 rounded-full group-hover:bg-purple-100 transition-colors">
+                <ArrowLeft size={20} />
+              </div>
+              <span className="font-medium hidden sm:inline">Back</span>
+            </button>
+
+            <div className="flex items-center gap-3">
+              {isAuthenticated && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                  <Wallet size={18} className="text-[#6b2fa5]" />
+                  <span className="font-semibold text-gray-900">₦{formatNumber(walletBalance)}</span>
+                </div>
+              )}
+
               <button
-                onClick={() => router.back()}
-                className="flex items-center gap-2 text-gray-700 hover:text-purple-600 transition-colors group"
+                onClick={() => setShowReportModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-red-50 hover:border-red-200 transition-colors group"
               >
-                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                <span className="font-medium">Back</span>
+                <Flag size={18} className="text-gray-600 group-hover:text-red-600" />
+                <span className="font-medium text-gray-700 group-hover:text-red-600 hidden sm:inline">Report</span>
               </button>
 
-              <div className="flex items-center gap-3">
-                {isAuthenticated ? (
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-800 px-4 py-2 rounded-lg shadow-md">
-                    <Wallet size={18} className="text-white" />
-                    <span className="text-white font-medium">Balance:</span>
-                    <span className="text-white font-bold">₦{formatNumber(walletBalance)}</span>
-                  </div>
-                ) : (
-                  <LoginButton />
-                )}
-                
-                {/* Report Button */}
-                <button
-                  onClick={() => setShowReportModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-md transition-colors"
-                  title="Report Event"
-                >
-                  <Flag size={18} />
-                  <span className="hidden sm:inline font-medium">Report</span>
-                </button>
-              </div>
+              {!isAuthenticated && <LoginButton />}
             </div>
           </div>
 
-          {/* Scrolling Marquee */}
-          <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-600 text-white py-2.5 overflow-hidden">
-            <div className="animate-marquee-smooth whitespace-nowrap">
-              <span className="text-sm font-medium px-4 inline-block">
-                🎉 Grab your tickets for this event today! Events block color will change in response to the color code
-                of event set by booker. Got any report about this event⛔? Use Spotix Telegram Bot to make reports
-              </span>
-              <span className="text-sm font-medium px-4 inline-block">
-                🎉 Grab your tickets for this event today! Events block color will change in response to the color code
-                of event set by booker. Got any report about this event⛔? Use Spotix Telegram Bot to make reports
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Image Carousel */}
-        <div className="mt-6 px-4 sm:px-6 lg:px-8">
-          <ImageCarousels />
-        </div>
-
-        {/* Main Content - Two Column Layout for Desktop */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          {/* Event Status Tags */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {isEventToday && (
-              <span className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg animate-pulse">
-                🔥 Happening Today!
-              </span>
-            )}
-            {isSoldOut && (
-              <span className="bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                ❌ Sold Out
-              </span>
-            )}
-            {isSaleEnded && (
-              <span className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                ⏰ Sales Ended
-              </span>
-            )}
-            {isEventPassed && (
-              <span className="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                📅 Event Passed
-              </span>
-            )}
-          </div>
-
-          {/* Desktop Two Column Layout */}
+          {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Left Column - Main Content (2/3 width on desktop) */}
+            {/* Left Column - Event Details */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Event Image Carousel */}
-              <ImageCarousel
-                mainImage={eventData.eventImage || "/placeholder.svg"}
-                additionalImages={eventData.eventImages || []}
-                eventName={eventData.eventName}
-              />
+              {/* Event Image/Carousel */}
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                {eventData.eventImages && eventData.eventImages.length > 1 ? (
+                  <ImageCarousel images={eventData.eventImages} eventName={eventData.eventName} />
+                ) : (
+                  <LazyImage
+                    src={eventData.eventImage || "/placeholder.svg"}
+                    alt={eventData.eventName}
+                    className="w-full h-[300px] sm:h-[400px] lg:h-[500px]"
+                    eventName={eventData.eventName}
+                    showFullscreenIcon={true}
+                  />
+                )}
+              </div>
 
-              {/* Event Details Section */}
+              {/* Event Details Tab */}
               <EventDetailsSection
                 eventData={eventData}
                 eventUrl={eventUrl}
@@ -670,14 +585,14 @@ const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
               />
 
               {/* Location Section */}
-              <LocationSection eventVenue={eventData.eventVenue} eventName={eventData.eventName} />
+              <LocationSection eventVenue={eventData.eventVenue} eventName={""} />
 
-              {/* Merch Section */}
-              <MerchSection eventId={eventId || ""} creatorId={creatorId || ""} />
+              {/* Merchandise Section */}
+              <MerchSection eventId={eventId} creatorId={creatorId} />
 
               {/* Reviews Section */}
               <ReviewsSection
-                eventId={eventId || ""}
+                eventId={eventId}
                 eventName={eventData.eventName}
                 eventEndDate={eventData.eventEndDate}
                 eventEnd={eventData.eventEnd}
@@ -686,93 +601,114 @@ const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
               />
             </div>
 
-            {/* Right Column - Sidebar (1/3 width on desktop, sticky) */}
-            <div className="lg:col-span-1">
-              <div className="lg:sticky lg:top-24 space-y-6">
-                {/* Ticket Purchase Card - Desktop Only Sticky */}
-                <div className="hidden lg:block bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Get Your Tickets</h3>
-                  
-                  {/* Ticket Prices */}
-                  {!eventData.isFree && eventData.ticketPrices && eventData.ticketPrices.length > 0 && (
-                    <div className="mb-6 space-y-3">
-                      <p className="text-sm font-medium text-gray-600 mb-2">Ticket Options:</p>
-                      {eventData.ticketPrices.map((ticket, index) => (
-                        <div key={index} className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                          <span className="font-medium text-gray-800">{ticket.policy}</span>
-                          <span className="font-bold text-purple-600">
-                            ₦{formatNumber(ticket.price)}
-                          </span>
-                        </div>
-                      ))}
+            {/* Right Column - Ticket Purchase & Booker Details */}
+            <div className="space-y-6 lg:relative lg:z-0">
+              {/* Ticket Purchase Card */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 border-2 border-purple-100 lg:sticky lg:top-6 lg:z-10">
+                <div className="mb-6">
+                  {eventData.isFree ? (
+                    <div className="text-center">
+                      <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-full shadow-lg mb-4">
+                        <Ticket size={24} />
+                        <span className="text-2xl font-bold">FREE EVENT</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center mb-4">
+                      <p className="text-gray-600 mb-2">Starting from</p>
+                      <p className="text-4xl font-bold text-[#6b2fa5]">
+                        ₦
+                        {formatNumber(
+                          eventData.ticketPrices && eventData.ticketPrices.length > 0
+                            ? Math.min(...eventData.ticketPrices.map((t) => t.price))
+                            : 0,
+                        )}
+                      </p>
                     </div>
                   )}
+                </div>
 
-                  {/* Ticket Stats */}
-                  <div className="space-y-3 mb-6 p-4 bg-gray-50 rounded-lg">
-                    {eventData.enableMaxSize && eventData.maxSize && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Tickets Sold:</span>
-                        <span className="font-semibold text-gray-900">
-                          {eventData.ticketsSold || 0} / {eventData.maxSize}
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Get Your Tickets</h3>
+                
+                {/* Ticket Prices */}
+                {!eventData.isFree && eventData.ticketPrices && eventData.ticketPrices.length > 0 && (
+                  <div className="mb-6 space-y-3">
+                    <p className="text-sm font-medium text-gray-600 mb-2">Ticket Options:</p>
+                    {eventData.ticketPrices.map((ticket, index) => (
+                      <div key={index} className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+                        <span className="font-medium text-gray-800">{ticket.policy}</span>
+                        <span className="font-bold text-[#6b2fa5]">
+                          ₦{formatNumber(ticket.price)}
                         </span>
                       </div>
-                    )}
-                    {eventData.enableStopDate && eventData.stopDate && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Sales End:</span>
-                        <span className="font-semibold text-gray-900">
-                          {new Date(eventData.stopDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                    )}
+                    ))}
                   </div>
+                )}
 
-                  {/* CTA Button */}
-                  {isEventPassed ? (
-                    <button
-                      onClick={handleShowPassedDialog}
-                      className="w-full bg-gray-400 text-white py-3.5 px-6 rounded-lg font-semibold text-lg cursor-not-allowed shadow-md"
-                      disabled
-                    >
-                      Event Has Passed
-                    </button>
-                  ) : isSoldOut ? (
-                    <button
-                      className="w-full bg-gray-400 text-white py-3.5 px-6 rounded-lg font-semibold text-lg cursor-not-allowed shadow-md"
-                      disabled
-                    >
-                      Sold Out
-                    </button>
-                  ) : isSaleEnded ? (
-                    <button
-                      className="w-full bg-gray-400 text-white py-3.5 px-6 rounded-lg font-semibold text-lg cursor-not-allowed shadow-md"
-                      disabled
-                    >
-                      Sales Ended
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowBuyTicketDialog(true)}
-                      className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3.5 px-6 rounded-lg font-semibold text-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <Ticket size={22} />
-                        {eventData.isFree ? "Register Now" : "Buy Tickets"}
-                        {isEventToday && <span className="animate-pulse">🔥</span>}
-                      </div>
-                    </button>
+                {/* Ticket Stats */}
+                <div className="space-y-3 mb-6 p-4 bg-gray-50 rounded-lg">
+                  {eventData.enableMaxSize && eventData.maxSize && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Tickets Sold:</span>
+                      <span className="font-semibold text-gray-900">
+                        {eventData.ticketsSold || 0} / {eventData.maxSize}
+                      </span>
+                    </div>
+                  )}
+                  {eventData.enableStopDate && eventData.stopDate && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Sales End:</span>
+                      <span className="font-semibold text-gray-900">
+                        {new Date(eventData.stopDate).toLocaleDateString()}
+                      </span>
+                    </div>
                   )}
                 </div>
 
-                {/* Booker Details Section */}
-                <div ref={bookerDetailsRef}>
-                  <BookerDetailsSection
-                    bookerDetails={bookerDetails}
-                    bookerName={eventData.bookerName}
-                    creatorId={eventData.createdBy}
-                  />
-                </div>
+                {/* CTA Button */}
+                {isEventPassed ? (
+                  <button
+                    onClick={handleShowPassedDialog}
+                    className="w-full bg-gray-400 text-white py-3.5 px-6 rounded-lg font-semibold text-lg cursor-not-allowed shadow-md"
+                    disabled
+                  >
+                    Event Has Passed
+                  </button>
+                ) : isSoldOut ? (
+                  <button
+                    className="w-full bg-gray-400 text-white py-3.5 px-6 rounded-lg font-semibold text-lg cursor-not-allowed shadow-md"
+                    disabled
+                  >
+                    Sold Out
+                  </button>
+                ) : isSaleEnded ? (
+                  <button
+                    className="w-full bg-gray-400 text-white py-3.5 px-6 rounded-lg font-semibold text-lg cursor-not-allowed shadow-md"
+                    disabled
+                  >
+                    Sales Ended
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowBuyTicketDialog(true)}
+                    className="w-full bg-gradient-to-r from-[#6b2fa5] to-purple-700 text-white py-3.5 px-6 rounded-lg font-semibold text-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Ticket size={22} />
+                      {eventData.isFree ? "Register Now" : "Buy Tickets"}
+                      {isEventToday && <span className="animate-pulse">🔥</span>}
+                    </div>
+                  </button>
+                )}
+              </div>
+
+              {/* Booker Details Section */}
+              <div ref={bookerDetailsRef} className="lg:relative lg:z-0">
+                <BookerDetailsSection
+                  bookerDetails={bookerDetails}
+                  bookerName={eventData.bookerName}
+                  creatorId={eventData.createdBy}
+                />
               </div>
             </div>
           </div>
@@ -813,7 +749,7 @@ const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
             ) : (
               <button
                 onClick={() => setShowBuyTicketDialog(true)}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg"
+                className="w-full bg-gradient-to-r from-[#6b2fa5] to-purple-700 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg"
               >
                 <div className="flex items-center justify-center gap-2">
                   <Ticket size={20} />
@@ -855,7 +791,7 @@ const handleBuyTicket = (ticketType: string, ticketPrice: number | string) => {
               </p>
               <button
                 onClick={() => router.push("/home")}
-                className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                className="w-full bg-[#6b2fa5] text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
               >
                 Browse Events
               </button>

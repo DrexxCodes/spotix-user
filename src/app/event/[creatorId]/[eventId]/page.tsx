@@ -1,12 +1,11 @@
 import ClientPage from "./ClientPage"
 import type { Metadata } from "next"
-import { doc, getDoc } from "firebase/firestore"
-import { db } from "../../../lib/firebase"
 
 interface EventType {
   id: string
   eventName: string
   eventImage: string
+  eventImages: string[]
   eventDate: string
   eventEndDate: string
   eventStart: string
@@ -33,6 +32,29 @@ interface EventType {
   allowAgents?: boolean
 }
 
+async function fetchEventData(creatorId: string, eventId: string): Promise<EventType | null> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://spotix.vercel.app"
+    const response = await fetch(
+      `${baseUrl}/api/v1/event?creatorId=${creatorId}&eventId=${eventId}`,
+      {
+        cache: "no-store", // Disable caching for dynamic event data
+      }
+    )
+
+    if (!response.ok) {
+      console.error("Failed to fetch event data:", response.statusText)
+      return null
+    }
+
+    const result = await response.json()
+    return result.success ? result.data : null
+  } catch (error) {
+    console.error("Error fetching event data:", error)
+    return null
+  }
+}
+
 export async function generateMetadata({
   params,
 }: { params: Promise<{ creatorId: string; eventId: string }> }): Promise<Metadata> {
@@ -46,18 +68,15 @@ export async function generateMetadata({
       }
     }
 
-    // Fetch event data for metadata
-    const docRef = doc(db, "events", creatorId, "userEvents", eventId)
-    const docSnap = await getDoc(docRef)
+    // Fetch event data using API
+    const eventData = await fetchEventData(creatorId, eventId)
 
-    if (!docSnap.exists()) {
+    if (!eventData) {
       return {
         title: "Event Not Found - Spotix",
         description: "The event you're looking for doesn't exist or has been removed.",
       }
     }
-
-    const eventData = docSnap.data() as EventType
 
     const eventDescription = eventData.eventDescription
       ? eventData.eventDescription.substring(0, 160)
@@ -116,5 +135,9 @@ export default async function EventPage({
   params: Promise<{ creatorId: string; eventId: string }>
 }) {
   const resolvedParams = await params
-  return <ClientPage params={resolvedParams} />
+  
+  // Fetch event data for SSR
+  const eventData = await fetchEventData(resolvedParams.creatorId, resolvedParams.eventId)
+  
+  return <ClientPage params={resolvedParams} initialEventData={eventData} />
 }

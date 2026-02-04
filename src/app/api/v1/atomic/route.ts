@@ -5,7 +5,7 @@ import { FieldValue } from "firebase-admin/firestore";
 /**
  * Atomic Operations API Route
  * Handles event statistics updates atomically
- * POST /api/atomic-operations
+ * POST /api/v1/atomic-operations
  */
 
 interface AtomicOperationsRequest {

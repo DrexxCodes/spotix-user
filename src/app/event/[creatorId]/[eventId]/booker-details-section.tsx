@@ -3,9 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { collection, query, limit, getDocs, orderBy } from "firebase/firestore"
-import { db } from "../../../lib/firebase"
-import { Calendar, MapPin, User, Mail, Phone, Shield, CheckCircle, Star, TrendingUp, ExternalLink } from "lucide-react"
+import { Calendar, MapPin, User, Mail, Phone, Shield, CheckCircle, TrendingUp, ExternalLink } from "lucide-react"
 
 interface BookerDetailsSectionProps {
   bookerDetails: {
@@ -55,26 +53,23 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
 
       setLoadingSuggestions(true)
       try {
-        const eventsRef = collection(db, "events", creatorId, "userEvents")
-        const q = query(eventsRef, orderBy("createdAt", "desc"), limit(10))
-        const querySnapshot = await getDocs(q)
+        // Fetch from API
+        const response = await fetch(
+          `/api/v1/event/suggested?creatorId=${creatorId}&currentEventId=${currentEventId}&limit=10`
+        )
+        
+        if (!response.ok) {
+          console.error("Failed to fetch suggested events")
+          return
+        }
 
-        const events: SuggestedEvent[] = []
-        querySnapshot.forEach((doc) => {
-          if (doc.id !== currentEventId) {
-            const data = doc.data()
-            events.push({
-              id: doc.id,
-              eventName: data.eventName,
-              eventImage: data.eventImage,
-              eventDate: data.eventDate,
-              eventVenue: data.eventVenue,
-            })
-          }
-        })
-
-        const shuffled = events.sort(() => 0.5 - Math.random())
-        setSuggestedEvents(shuffled.slice(0, 3))
+        const result = await response.json()
+        
+        if (result.success) {
+          // Shuffle and take 3 events
+          const shuffled = result.data.sort(() => 0.5 - Math.random())
+          setSuggestedEvents(shuffled.slice(0, 3))
+        }
       } catch (error) {
         console.error("Error fetching suggested events:", error)
       } finally {
@@ -92,7 +87,7 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
   return (
     <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl shadow-lg border-2 border-purple-100 overflow-hidden">
       {/* Header Section with Gradient */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-6 md:p-8">
+      <div className="bg-gradient-to-r from-[#6b2fa5] to-purple-700 p-6 md:p-8">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
             <User size={32} className="text-white" />
@@ -112,7 +107,7 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
             <div className="bg-white rounded-xl shadow-md border border-purple-100 p-6">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="w-16 h-16 bg-gradient-to-br from-[#6b2fa5] to-purple-700 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-2xl font-bold text-white">
                       {bookerDetails.username.charAt(0).toUpperCase()}
                     </span>
@@ -132,17 +127,17 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
                 </div>
               </div>
 
-              {/* Contact Information Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Contact Information - Stacked layout for all screen sizes */}
+              <div className="grid grid-cols-1 gap-4">
                 {/* Email */}
                 <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-purple-200">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                      <Mail size={18} className="text-purple-600" />
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform flex-shrink-0">
+                      <Mail size={18} className="text-[#6b2fa5]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Email</p>
-                      <p className="text-sm font-medium text-gray-900 truncate">{bookerDetails.email}</p>
+                      <p className="text-sm font-medium text-gray-900 break-all">{bookerDetails.email}</p>
                     </div>
                   </div>
                 </div>
@@ -150,12 +145,12 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
                 {/* Phone */}
                 <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-purple-200">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                      <Phone size={18} className="text-purple-600" />
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform flex-shrink-0">
+                      <Phone size={18} className="text-[#6b2fa5]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Phone</p>
-                      <p className="text-sm font-medium text-gray-900 truncate">{bookerDetails.phone}</p>
+                      <p className="text-sm font-medium text-gray-900 break-all">{bookerDetails.phone}</p>
                     </div>
                   </div>
                 </div>
@@ -163,7 +158,7 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
                 {/* Verification Status */}
                 <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-purple-200">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform flex-shrink-0">
                       <Shield size={18} className={bookerDetails.isVerified ? "text-green-600" : "text-gray-400"} />
                     </div>
                     <div className="flex-1">
@@ -215,7 +210,7 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
             <div className="bg-white rounded-xl shadow-md border border-purple-100 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg flex items-center justify-center shadow-sm">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#6b2fa5] to-purple-700 rounded-lg flex items-center justify-center shadow-sm">
                     <TrendingUp size={20} className="text-white" />
                   </div>
                   <div>
@@ -226,7 +221,7 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
               </div>
 
               {loadingSuggestions ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="bg-gray-100 rounded-xl overflow-hidden animate-pulse">
                       <div className="h-40 bg-gray-200"></div>
@@ -239,52 +234,55 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
                   ))}
                 </div>
               ) : suggestedEvents.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   {suggestedEvents.map((event) => (
                     <div
                       key={event.id}
-                      className="group bg-white rounded-xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-purple-300 transform hover:scale-105"
+                      className="group bg-white rounded-xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-[#6b2fa5] transform hover:scale-[1.02]"
                       onClick={() => handleEventClick(event.id)}
                     >
-                      <div className="relative h-40 overflow-hidden bg-gray-100">
-                        <img
-                          src={getOptimizedImageUrl(event.eventImage, 400, 300)}
-                          alt={event.eventName}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        
-                        {/* External Link Icon */}
-                        <div className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg">
-                          <ExternalLink size={14} className="text-purple-600" />
-                        </div>
-
-                      </div>
-                      
-                      <div className="p-4">
-                        <h4 className="font-bold text-gray-900 mb-3 line-clamp-2 text-sm group-hover:text-purple-700 transition-colors">
-                          {event.eventName}
-                        </h4>
-                        
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
-                            <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                              <Calendar size={12} className="text-purple-600" />
-                            </div>
-                            <span className="truncate">
-                              {new Date(event.eventDate).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric"
-                              })}
-                            </span>
-                          </div>
+                      <div className="flex flex-col sm:flex-row">
+                        {/* Image */}
+                        <div className="relative h-48 sm:h-40 sm:w-40 flex-shrink-0 overflow-hidden bg-gray-100">
+                          <img
+                            src={getOptimizedImageUrl(event.eventImage, 400, 300)}
+                            alt={event.eventName}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                           
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
-                            <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                              <MapPin size={12} className="text-purple-600" />
+                          {/* External Link Icon */}
+                          <div className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg">
+                            <ExternalLink size={14} className="text-[#6b2fa5]" />
+                          </div>
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="p-4 flex-1 min-w-0">
+                          <h4 className="font-bold text-gray-900 mb-3 line-clamp-2 text-base group-hover:text-[#6b2fa5] transition-colors">
+                            {event.eventName}
+                          </h4>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                <Calendar size={14} className="text-[#6b2fa5]" />
+                              </div>
+                              <span className="truncate">
+                                {new Date(event.eventDate).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric"
+                                })}
+                              </span>
                             </div>
-                            <span className="truncate">{event.eventVenue}</span>
+                            
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                <MapPin size={14} className="text-[#6b2fa5]" />
+                              </div>
+                              <span className="truncate">{event.eventVenue}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -304,7 +302,7 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-16 h-16 border-4 border-purple-200 border-t-[#6b2fa5] rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600 font-medium">Loading organizer details...</p>
           </div>
         )}

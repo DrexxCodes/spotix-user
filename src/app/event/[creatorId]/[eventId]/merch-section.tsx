@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { db, auth } from "../../../lib/firebase"
-import { collection, getDocs, doc, getDoc } from "firebase/firestore"
 import { ShoppingBag } from "lucide-react"
 
 interface Merch {
@@ -26,32 +24,17 @@ export default function MerchSection({ eventId, creatorId }: MerchSectionProps) 
   useEffect(() => {
     const fetchEventMerch = async () => {
       try {
-        const listingsCollectionRef = collection(db, "events", creatorId, "userEvents", eventId, "listings")
-        const snapshot = await getDocs(listingsCollectionRef)
-
-        const merchData: Merch[] = []
-        for (const docSnap of snapshot.docs) {
-          const data = docSnap.data()
-          const listingId = data.listingId
-          const listingOwnerId = data.userId
-
-          // Fetch full listing data from listing/{userId}/products/{listingId}
-          const listingDocRef = doc(db, "listing", listingOwnerId, "products", listingId)
-          const listingDoc = await getDoc(listingDocRef)
-
-          if (listingDoc.exists()) {
-            const listingData = listingDoc.data()
-            merchData.push({
-              id: listingId,
-              productName: listingData.productName || "",
-              description: listingData.description || "",
-              price: listingData.price || 0,
-              images: listingData.images || [],
-            })
-          }
+        const response = await fetch(`/api/v1/event/merch?creatorId=${creatorId}&eventId=${eventId}`)
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch merchandise")
         }
 
-        setMerch(merchData)
+        const result = await response.json()
+        
+        if (result.success) {
+          setMerch(result.data)
+        }
       } catch (error) {
         console.error("Error fetching event merchandise:", error)
       } finally {
@@ -78,7 +61,7 @@ export default function MerchSection({ eventId, creatorId }: MerchSectionProps) 
     return (
       <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8">
         <div className="text-center py-12">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent mb-4"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#6b2fa5] border-r-transparent mb-4"></div>
           <p className="text-gray-600">Loading merchandise...</p>
         </div>
       </div>
@@ -92,9 +75,9 @@ export default function MerchSection({ eventId, creatorId }: MerchSectionProps) 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8">
       <div className="flex items-center gap-3 mb-6">
-        <ShoppingBag size={24} className="text-purple-600" />
+        <ShoppingBag size={24} className="text-[#6b2fa5]" />
         <h2 className="text-2xl font-bold text-gray-900">Event Merchandise</h2>
-        <span className="ml-auto px-3 py-1 bg-purple-100 text-purple-700 text-sm font-semibold rounded-full">
+        <span className="ml-auto px-3 py-1 bg-purple-100 text-[#6b2fa5] text-sm font-semibold rounded-full">
           {merch.length} {merch.length === 1 ? "Item" : "Items"}
         </span>
       </div>
@@ -125,8 +108,8 @@ export default function MerchSection({ eventId, creatorId }: MerchSectionProps) 
               <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
 
               <div className="flex items-center justify-between">
-                <p className="text-lg sm:text-xl font-bold text-purple-600">{formatPrice(item.price)}</p>
-                <button className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
+                <p className="text-lg sm:text-xl font-bold text-[#6b2fa5]">{formatPrice(item.price)}</p>
+                <button className="px-4 py-2 bg-[#6b2fa5] text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
                   Order
                 </button>
               </div>
