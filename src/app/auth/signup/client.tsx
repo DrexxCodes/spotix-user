@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Head from "next/head"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2, Shield, User, Mail, Lock, Users, X } from "lucide-react"
 
 const Signup: React.FC = () => {
@@ -34,6 +34,8 @@ const Signup: React.FC = () => {
   const [emailExtension, setEmailExtension] = useState("")
 
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect")
 
   // Words for animation
   const words = ["Event", "Party", "Meeting", "Conference", "Gathering", "Workshop"]
@@ -157,7 +159,6 @@ const Signup: React.FC = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action: "signup",
           email,
           password,
           fullName,
@@ -189,9 +190,12 @@ const Signup: React.FC = () => {
       setUsername("")
       setReferral("")
 
-      // Redirect to login with verification message
+      // Redirect to login with redirect parameter preserved
       setTimeout(() => {
-        router.push("/auth/login?verified=true")
+        const loginUrl = redirect 
+          ? `/auth/login?redirect=${encodeURIComponent(redirect)}`
+          : "/auth/login"
+        router.push(loginUrl)
       }, 2000)
     } catch (err: any) {
       console.error("Signup error:", err)
@@ -468,7 +472,10 @@ const Signup: React.FC = () => {
             <div className="text-center mt-6">
               <p className="text-gray-600 text-sm">
                 Already have an account?{" "}
-                <Link href="/auth/login" className="text-purple-700 font-semibold hover:text-purple-800 hover:underline transition-colors">
+                <Link 
+                  href={redirect ? `/auth/login?redirect=${encodeURIComponent(redirect)}` : "/auth/login"}
+                  className="text-purple-700 font-semibold hover:text-purple-800 hover:underline transition-colors"
+                >
                   Sign in here
                 </Link>
               </p>

@@ -4,10 +4,10 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Head from "next/head"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff, AlertCircle, Mail, Loader2, CheckCircle, Shield, User, X } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Eye, EyeOff, AlertCircle, Loader2, Shield, User, X } from "lucide-react"
 import { auth } from "../../lib/firebase"
-import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
+import { signInWithEmailAndPassword } from "firebase/auth"
 
 type LoginProps = {}
 
@@ -18,14 +18,11 @@ const LoginClient: React.FC<LoginProps> = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loggingIn, setLoggingIn] = useState(false)
-  const [showVerificationOption, setShowVerificationOption] = useState(false)
-  const [sendingVerification, setSendingVerification] = useState(false)
-  const [verificationSent, setVerificationSent] = useState(false)
-  const [unverifiedUser, setUnverifiedUser] = useState<any>(null)
-  const [verificationMessage, setVerificationMessage] = useState("")
   const [formTouched, setFormTouched] = useState(false)
 
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect")
 
   const words = ["Event", "Party", "Meeting", "Conference", "Gathering", "Workshop"]
 
@@ -46,20 +43,6 @@ const LoginClient: React.FC<LoginProps> = () => {
     return () => clearInterval(interval)
   }, [])
 
-  // Check for verification message from signup
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.get("verified") === "true") {
-      setVerificationMessage("Your account has been created successfully! Please check your email to verify your account before logging in.")
-
-      const timer = setTimeout(() => {
-        setVerificationMessage("")
-      }, 12000)
-
-      return () => clearTimeout(timer)
-    }
-  }, [])
-
   // Clear error when user starts typing
   useEffect(() => {
     if (formTouched && (email || password)) {
@@ -75,7 +58,6 @@ const LoginClient: React.FC<LoginProps> = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    setShowVerificationOption(false)
     setLoggingIn(true)
     setFormTouched(true)
 
@@ -93,47 +75,44 @@ const LoginClient: React.FC<LoginProps> = () => {
     }
 
     try {
-      // First, sign in with Firebase to check email verification
+      // Step 1: Sign in with Firebase Client SDK
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
 
-      if (!user.emailVerified) {
-        setUnverifiedUser(user)
-        setShowVerificationOption(true)
-        setError("Please verify your email address before signing in.")
-        setLoggingIn(false)
-        return
-      }
+      // Step 2: Get ID token
+      const idToken = await user.getIdToken()
 
-      // Call API route for login to get user data
-      const response = await fetch("/api/v1/user", {
+      // Step 3: Create server session
+      const sessionResponse = await fetch("/api/v1/auth", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          action: "login",
-          email,
-          password,
-        }),
+        body: JSON.stringify({ idToken }),
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.message || "Unable to sign in. Please try again")
-        setLoggingIn(false)
-        return
+      if (!sessionResponse.ok) {
+        const errorData = await sessionResponse.json()
+        throw new Error(errorData.message || "Failed to create session")
       }
 
-      // Store user data in localStorage or context (optional)
+      const sessionData = await sessionResponse.json()
+
+      console.log("✅ Session created successfully")
+      console.log("📊 User data:", sessionData.user)
+
+      // Store user data in localStorage (optional, for client-side access)
       if (typeof window !== "undefined") {
-        localStorage.setItem("spotix_user", JSON.stringify(data.user))
+        localStorage.setItem("spotix_user", JSON.stringify(sessionData.user))
       }
 
       setEmail("")
       setPassword("")
-      router.push("/home")
+
+      // Step 4: Redirect to the stored redirect URL or home
+      const redirectUrl = redirect || "/home"
+      console.log("✅ Redirecting to:", redirectUrl)
+      router.push(redirectUrl)
     } catch (error: any) {
       console.error("Login error:", error)
       
@@ -147,6 +126,8 @@ const LoginClient: React.FC<LoginProps> = () => {
         errorMessage = "Please check your internet connection and try again"
       } else if (error.code === "auth/user-disabled") {
         errorMessage = "This account has been disabled"
+      } else if (error.message) {
+        errorMessage = error.message
       }
       
       setError(errorMessage)
@@ -154,29 +135,8 @@ const LoginClient: React.FC<LoginProps> = () => {
     }
   }
 
-  const handleResendVerification = async () => {
-    if (!unverifiedUser) return
-
-    setSendingVerification(true)
-    setVerificationSent(false)
-
-    try {
-      await sendEmailVerification(unverifiedUser)
-      setVerificationSent(true)
-      setTimeout(() => {
-        setVerificationSent(false)
-      }, 8000)
-    } catch (error: any) {
-      console.error("Error resending verification:", error)
-      setError("Unable to send verification email. Please try again")
-    } finally {
-      setSendingVerification(false)
-    }
-  }
-
   const dismissError = () => {
     setError("")
-    setShowVerificationOption(false)
   }
 
   if (loading) {
@@ -192,42 +152,26 @@ const LoginClient: React.FC<LoginProps> = () => {
       <Head>
         <title>Sign In</title>
         <meta name="description" content="Sign in to your Spotix account to manage events and bookings" />
-        <link rel="canonical" href="/login" />
-        <meta property="og:title" content="Sign In" />
-        <meta property="og:description" content="Sign in to your Spotix account to manage events and bookings" />
-        <meta property="og:url" content="/login" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-[#6b2fa5] via-purple-600 to-purple-500 flex items-center justify-center p-4 md:p-8">
-        <div className="flex items-center justify-center gap-8 lg:gap-16 w-full max-w-7xl">
-          {/* Login Form */}
-          <div className="bg-white rounded-3xl shadow-2xl border border-white/20 backdrop-blur-lg p-8 md:p-12 w-full max-w-md">
-            <div className="text-center mb-10">
-              <img 
-                src="/logo.svg" 
-                alt="Spotix Logo" 
-                className="w-20 h-20 mx-auto mb-4 rounded-full object-cover shadow-lg shadow-[#6b2fa5]/20"
-              />
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#6b2fa5] to-purple-600 bg-clip-text text-transparent mb-2">
-                Welcome Back
-              </h1>
-              <p className="text-gray-600 text-base">Sign in to your account to continue</p>
+      <div className="min-h-screen bg-gradient-to-br from-[#6b2fa5] via-purple-600 to-purple-500 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
+          {/* Left Side - Login Form */}
+          <div className="bg-white/95 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-8 sm:p-10 lg:p-12 max-w-lg w-full mx-auto lg:mx-0">
+            <div className="mb-8 text-center">
+              <h1 className="text-4xl font-bold text-gray-900 mb-3">Welcome Back</h1>
+              <p className="text-gray-600 text-base">Sign in to continue your journey with Spotix</p>
             </div>
 
-            {/* Verification Success Message */}
-            {verificationMessage && (
-              <div className="flex items-start gap-3 p-4 mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-400 rounded-xl animate-in slide-in-from-top duration-300">
-                <CheckCircle size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
+            {/* Redirect Notice */}
+            {redirect && (
+              <div className="flex items-start gap-3 p-4 mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-400 rounded-xl">
+                <AlertCircle size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-green-800 text-sm font-medium leading-relaxed">{verificationMessage}</p>
+                  <p className="text-blue-800 text-sm font-medium">
+                    Please sign in to continue to <span className="font-semibold">{redirect}</span>
+                  </p>
                 </div>
-                <button
-                  onClick={() => setVerificationMessage("")}
-                  className="flex-shrink-0 p-1 hover:bg-green-100 rounded transition-colors"
-                  aria-label="Dismiss message"
-                >
-                  <X size={18} className="text-green-600" />
-                </button>
               </div>
             )}
 
@@ -245,51 +189,6 @@ const LoginClient: React.FC<LoginProps> = () => {
                 >
                   <X size={18} className="text-red-600" />
                 </button>
-              </div>
-            )}
-
-            {/* Verification Option */}
-            {showVerificationOption && (
-              <div className="p-6 mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-[#6b2fa5] rounded-xl animate-in slide-in-from-top duration-300">
-                <div className="flex items-center gap-3 mb-4">
-                  <Shield size={20} className="text-[#6b2fa5]" />
-                  <h3 className="text-lg font-semibold text-[#6b2fa5]">Email Verification Required</h3>
-                </div>
-                <p className="text-gray-700 text-sm leading-relaxed mb-5">
-                  We've sent a verification link to your email address. Please check your inbox and click the link to
-                  verify your account.
-                </p>
-
-                <button
-                  onClick={handleResendVerification}
-                  disabled={sendingVerification || verificationSent}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#6b2fa5] to-purple-600 text-white font-semibold py-3.5 px-5 rounded-xl shadow-lg shadow-[#6b2fa5]/30 hover:shadow-xl hover:shadow-[#6b2fa5]/40 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
-                >
-                  {sendingVerification ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" />
-                      <span>Sending verification email...</span>
-                    </>
-                  ) : verificationSent ? (
-                    <>
-                      <CheckCircle size={18} />
-                      <span>Verification email sent!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Mail size={18} />
-                      <span>Resend Verification Email</span>
-                    </>
-                  )}
-                </button>
-
-                {verificationSent && (
-                  <div className="mt-4 p-3 bg-green-100/50 border border-green-300 rounded-lg">
-                    <p className="text-green-800 text-sm font-medium">
-                      ✅ Verification email sent successfully! Please check your inbox and spam folder.
-                    </p>
-                  </div>
-                )}
               </div>
             )}
 
@@ -364,7 +263,7 @@ const LoginClient: React.FC<LoginProps> = () => {
               <p className="text-gray-600 text-sm">
                 Don't have an account?{" "}
                 <Link 
-                  href="/auth/signup" 
+                  href={redirect ? `/auth/signup?redirect=${encodeURIComponent(redirect)}` : "/auth/signup"}
                   className="text-[#6b2fa5] font-semibold hover:text-purple-700 hover:underline transition-colors"
                 >
                   Create account

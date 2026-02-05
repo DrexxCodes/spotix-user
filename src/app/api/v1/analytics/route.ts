@@ -7,15 +7,10 @@ export const dynamic = "force-dynamic";
 
 /**
  * Analytics API Route
- * 
- * POST: Update global platform analytics (daily, monthly, yearly)
- * GET: Friendly message (not meant for public access)
+ * POST: Update global platform analytics (daily, monthly, yearly) — idempotent
+ * GET: Friendly message
  */
 
-/**
- * GET Handler
- * Returns a friendly message for unauthorized access
- */
 export async function GET(request: NextRequest) {
   return NextResponse.json(
     {
@@ -27,24 +22,12 @@ export async function GET(request: NextRequest) {
   );
 }
 
-/**
- * POST Handler
- * Update global analytics when a ticket is sold
- * 
- * Body:
- * {
- *   ticketPrice: number,
- *   ticketId: string,
- *   eventId: string,
- *   timestamp: string (optional)
- * }
- */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { ticketPrice, ticketId, eventId, timestamp } = body;
 
-    // Validate required fields
+    // ── Validation ────────────────────────────────────────────────
     if (!ticketPrice || !ticketId) {
       return NextResponse.json(
         {
@@ -56,7 +39,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse ticket price as number
     const price = Number(ticketPrice);
     if (isNaN(price) || price < 0) {
       return NextResponse.json(
@@ -69,55 +51,72 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get current time in Nigerian timezone (WAT - UTC+1)
+    // ── Nigerian time (WAT = UTC+1) ───────────────────────────────
     const now = timestamp ? new Date(timestamp) : new Date();
-    const nigerianTime = new Date(now.getTime() + 60 * 60 * 1000); // Add 1 hour for WAT
+    const nigerianTime = new Date(now.getTime() + 60 * 60 * 1000);
 
-    // Format date strings for Nigerian timezone
-    const year = nigerianTime.getUTCFullYear().toString();
+    const year  = nigerianTime.getUTCFullYear().toString();
     const month = `${nigerianTime.getUTCFullYear()}-${String(nigerianTime.getUTCMonth() + 1).padStart(2, "0")}`;
-    const day = `${nigerianTime.getUTCFullYear()}-${String(nigerianTime.getUTCMonth() + 1).padStart(2, "0")}-${String(nigerianTime.getUTCDate()).padStart(2, "0")}`;
+    const day   = `${year}-${String(nigerianTime.getUTCMonth() + 1).padStart(2, "0")}-${String(nigerianTime.getUTCDate()).padStart(2, "0")}`;
 
-    console.log("Updating analytics:", {
-      ticketId,
-      price,
-      year,
-      month,
-      day,
-      nigerianTime: nigerianTime.toISOString(),
-    });
+    // ── Idempotency check ─────────────────────────────────────────
+    const processedRef = adminDb
+      .collection("admin")
+      .doc("analytics")
+      .collection("processedTicketSales")
+      .doc(ticketId);
 
-    // Prepare update data
+    const processedSnap = await processedRef.get();
+
+    if (processedSnap.exists) {
+      console.log(`[Analytics] Already processed ticketId: ${ticketId}`);
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Analytics already updated for this ticket (idempotent)",
+          ticketId,
+          alreadyProcessed: true,
+          day,
+          month,
+          year,
+        },
+        { status: 200 }
+      );
+    }
+
+    // ── Prepare analytics update ──────────────────────────────────
     const updateData = {
       ticketsSold: FieldValue.increment(1),
       totalRevenue: FieldValue.increment(price),
       lastUpdated: FieldValue.serverTimestamp(),
     };
 
-    // Create batch to update all three levels atomically
     const batch = adminDb.batch();
 
-    // Daily stats
-    const dailyRef = adminDb.collection("admin").doc("analytics").collection("daily").doc(day);
-    batch.set(dailyRef, updateData, { merge: true });
-
-    // Monthly stats
+    const dailyRef   = adminDb.collection("admin").doc("analytics").collection("daily").doc(day);
     const monthlyRef = adminDb.collection("admin").doc("analytics").collection("monthly").doc(month);
+    const yearlyRef  = adminDb.collection("admin").doc("analytics").collection("yearly").doc(year);
+
+    batch.set(dailyRef,   updateData, { merge: true });
     batch.set(monthlyRef, updateData, { merge: true });
+    batch.set(yearlyRef,  updateData, { merge: true });
 
-    // Yearly stats
-    const yearlyRef = adminDb.collection("admin").doc("analytics").collection("yearly").doc(year);
-    batch.set(yearlyRef, updateData, { merge: true });
-
-    // Commit all updates atomically
+    // ── Commit + mark as processed (atomic relative to each other) ──
     await batch.commit();
 
-    console.log("Analytics updated successfully:", {
-      ticketId,
+    // Mark after successful commit → at-least-once + deduplication
+    await processedRef.set({
+      processedAt: FieldValue.serverTimestamp(),
+      ticketPrice: price,
+      eventId: eventId || null,
       day,
       month,
       year,
+      createdAt: now.toISOString(),        // original receive time
+      nigerianTime: nigerianTime.toISOString(),
     });
+
+    console.log(`[Analytics] Updated successfully for ticketId: ${ticketId}`);
 
     return NextResponse.json(
       {
@@ -136,7 +135,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error updating analytics:", error);
+    console.error("[Analytics] Error:", error);
 
     return NextResponse.json(
       {

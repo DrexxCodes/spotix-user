@@ -1,5 +1,6 @@
 import ClientPage from "./ClientPage"
 import type { Metadata } from "next"
+import { adminDb } from "@/app/lib/firebase-admin"
 
 interface EventType {
   id: string
@@ -34,21 +35,52 @@ interface EventType {
 
 async function fetchEventData(creatorId: string, eventId: string): Promise<EventType | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://spotix.vercel.app"
-    const response = await fetch(
-      `${baseUrl}/api/v1/event?creatorId=${creatorId}&eventId=${eventId}`,
-      {
-        cache: "no-store", // Disable caching for dynamic event data
-      }
-    )
+    // Use Firebase Admin SDK directly (same as API route)
+    const eventDocRef = adminDb
+      .collection("events")
+      .doc(creatorId)
+      .collection("userEvents")
+      .doc(eventId)
 
-    if (!response.ok) {
-      console.error("Failed to fetch event data:", response.statusText)
+    const eventDoc = await eventDocRef.get()
+
+    if (!eventDoc.exists) {
       return null
     }
 
-    const result = await response.json()
-    return result.success ? result.data : null
+    const eventData = eventDoc.data()
+
+    // Transform the data to match EventType interface
+    return {
+      id: eventDoc.id,
+      eventName: eventData?.eventName || "",
+      eventImage: eventData?.eventImage || "",
+      eventImages: eventData?.eventImages || [],
+      eventDate: eventData?.eventDate || "",
+      eventEndDate: eventData?.eventEndDate || "",
+      eventStart: eventData?.eventStart || "",
+      eventEnd: eventData?.eventEnd || "",
+      eventType: eventData?.eventType || "",
+      isFree: eventData?.isFree || false,
+      ticketPrices: eventData?.ticketPrices || [],
+      bookerName: eventData?.bookerName || "",
+      bookerEmail: eventData?.bookerEmail,
+      bookerPhone: eventData?.bookerPhone,
+      isVerified: eventData?.isVerified || false,
+      eventDescription: eventData?.eventDescription,
+      eventVenue: eventData?.eventVenue || "",
+      colorCode: eventData?.colorCode,
+      enableColorCode: eventData?.enableColorCode || false,
+      enableMaxSize: eventData?.enableMaxSize || false,
+      maxSize: eventData?.maxSize,
+      enableStopDate: eventData?.enableStopDate || false,
+      stopDate: eventData?.stopDate,
+      ticketsSold: eventData?.ticketsSold || 0,
+      createdBy: eventData?.createdBy || creatorId,
+      likes: eventData?.likes || 0,
+      likedBy: eventData?.likedBy || [],
+      allowAgents: eventData?.allowAgents || false,
+    }
   } catch (error) {
     console.error("Error fetching event data:", error)
     return null
@@ -68,7 +100,7 @@ export async function generateMetadata({
       }
     }
 
-    // Fetch event data using API
+    // Fetch event data directly from Firestore (no API call)
     const eventData = await fetchEventData(creatorId, eventId)
 
     if (!eventData) {
@@ -136,7 +168,7 @@ export default async function EventPage({
 }) {
   const resolvedParams = await params
   
-  // Fetch event data for SSR
+  // Fetch event data for SSR (reuses same function)
   const eventData = await fetchEventData(resolvedParams.creatorId, resolvedParams.eventId)
   
   return <ClientPage params={resolvedParams} initialEventData={eventData} />
