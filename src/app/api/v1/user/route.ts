@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
           email,
           referralCodeUsed: referralCode?.trim() || null,
           referredBy: referrerUsername || null,
-          isBooker: false,
+          isBooker: true,
           wallet: 0.0,
           createdAt: FieldValue.serverTimestamp(),
         });
