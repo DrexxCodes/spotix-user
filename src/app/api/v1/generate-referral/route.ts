@@ -1,19 +1,21 @@
 // app/api/v1/generate-referral/route.ts
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/app/lib/firebase"
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore"
+import { adminDb } from "@/app/lib/firebase-admin"
 
 /**
- * Generates a random alphanumeric referral code
- * Format: 8 characters (uppercase letters and numbers)
+ * Generates a referral code based on username
+ * Format: username with random 4-digit number suffix
+ * Example: johndoe1234
  */
-function generateRandomCode(length = 8): string {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-  let result = ""
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length))
-  }
-  return result
+function generateReferralCodeFromUsername(username: string): string {
+  // Clean username: remove special characters, convert to lowercase
+  const cleanUsername = username.toLowerCase().replace(/[^a-z0-9]/g, "")
+  
+  // Generate random 4-digit number
+  const randomNum = Math.floor(1000 + Math.random() * 9000)
+  
+  // Combine username with random number
+  return `${cleanUsername}${randomNum}`
 }
 
 /**
@@ -21,9 +23,8 @@ function generateRandomCode(length = 8): string {
  */
 async function isCodeUnique(code: string): Promise<boolean> {
   try {
-    const referralDocRef = doc(db, "referrals", code)
-    const referralDoc = await getDoc(referralDocRef)
-    return !referralDoc.exists()
+    const referralDoc = await adminDb.collection("referrals").doc(code).get()
+    return !referralDoc.exists
   } catch (error) {
     console.error("Error checking code uniqueness:", error)
     throw error
@@ -31,15 +32,15 @@ async function isCodeUnique(code: string): Promise<boolean> {
 }
 
 /**
- * Generates a unique referral code
+ * Generates a unique referral code based on username
  * Retries up to 10 times if code already exists
  */
-async function generateUniqueReferralCode(): Promise<string> {
+async function generateUniqueReferralCode(username: string): Promise<string> {
   let attempts = 0
   const maxAttempts = 10
 
   while (attempts < maxAttempts) {
-    const code = generateRandomCode()
+    const code = generateReferralCodeFromUsername(username)
     const isUnique = await isCodeUnique(code)
 
     if (isUnique) {
@@ -70,10 +71,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user exists
-    const userDocRef = doc(db, "users", userId)
-    const userDoc = await getDoc(userDocRef)
+    const userDoc = await adminDb.collection("users").doc(userId).get()
 
-    if (!userDoc.exists()) {
+    if (!userDoc.exists) {
       return NextResponse.json(
         {
           success: false,
@@ -85,13 +85,23 @@ export async function POST(request: NextRequest) {
 
     const userData = userDoc.data()
 
+    // Check if user has a username
+    if (!userData?.username) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Username is required to generate a referral code. Please set your username first.",
+        },
+        { status: 400 }
+      )
+    }
+
     // Check if user already has a referral code
     if (userData.referralCode) {
       // Verify that the referral code is listed in referrals collection
-      const referralDocRef = doc(db, "referrals", userData.referralCode)
-      const referralDoc = await getDoc(referralDocRef)
+      const referralDoc = await adminDb.collection("referrals").doc(userData.referralCode).get()
 
-      if (referralDoc.exists()) {
+      if (referralDoc.exists) {
         return NextResponse.json({
           success: true,
           referralCode: userData.referralCode,
@@ -100,14 +110,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate a new unique referral code
-    const referralCode = await generateUniqueReferralCode()
+    // Generate a new unique referral code based on username
+    const referralCode = await generateUniqueReferralCode(userData.username)
 
     // Create referral document in referrals collection
-    const referralDocRef = doc(db, "referrals", referralCode)
-    await setDoc(referralDocRef, {
+    await adminDb.collection("referrals").doc(referralCode).set({
       userId: userId,
-      username: userData.username || "",
+      username: userData.username,
       fullName: userData.fullName || "",
       createdAt: new Date().toISOString(),
       referrals: [], // Array to track users who signed up with this code
@@ -116,7 +125,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Update user document with the referral code
-    await updateDoc(userDocRef, {
+    await adminDb.collection("users").doc(userId).update({
       referralCode: referralCode,
     })
 

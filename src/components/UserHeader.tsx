@@ -60,7 +60,7 @@ const UserHeader: React.FC = () => {
               <Link href="https://t.me/SpotixNG_bot">Telegram Bot</Link>
             </DesktopNavItem>
             <DesktopNavItem>
-              <Link href="https://booker.spotix.com.ng">Dashboard</Link>
+              <Link href="https://booker.spotix.com.ng/create-event">Create Event</Link>
             </DesktopNavItem>
           </DesktopNavList>
         </DesktopNav>

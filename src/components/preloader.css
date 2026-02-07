@@ -1,9 +1,6 @@
 /* SPOTIX Preloader Styles */
 
-/* Import fancy fonts from Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Cinzel:wght@700;900&family=Cormorant+Garamond:wght@700&display=swap');
-
-/* Draw and Erase Animation */
+/* Draw and Erase Animation - NOW WORKS ON iOS! */
 @keyframes draw-erase {
   0% {
     stroke-dashoffset: 2000;
@@ -29,8 +26,10 @@
   }
 }
 
-.spotix-text {
+/* Apply animation to the path element */
+.spotix-path {
   animation: draw-erase 5s ease-in-out infinite;
+  will-change: stroke-dashoffset, opacity;
 }
 
 /* Alternative: Faster animation (3.5 seconds) */
@@ -59,8 +58,9 @@
   }
 }
 
-.spotix-text-fast {
+.spotix-path-fast {
   animation: draw-erase-fast 3.5s ease-in-out infinite;
+  will-change: stroke-dashoffset, opacity;
 }
 
 /* Alternative: Smooth continuous (no pause) */
@@ -76,8 +76,9 @@
   }
 }
 
-.spotix-text-smooth {
+.spotix-path-smooth {
   animation: draw-erase-smooth 6s linear infinite;
+  will-change: stroke-dashoffset;
 }
 
 /* Alternative: Elegant slow animation */
@@ -106,9 +107,18 @@
   }
 }
 
-.spotix-text-elegant {
+.spotix-path-elegant {
   animation: draw-erase-elegant 7s ease-in-out infinite;
+  will-change: stroke-dashoffset, opacity;
 }
+
+/* 
+  To use different animation speeds, change the className in Preloader.tsx:
+  - spotix-path (default, 5s)
+  - spotix-path-fast (3.5s)
+  - spotix-path-smooth (6s, no pause)
+  - spotix-path-elegant (7s, slow and elegant)
+*/
 
 /* Font alternatives - uncomment the one you prefer */
 

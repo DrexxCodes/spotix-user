@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique reference for free ticket
     const timestamp = Date.now()
-    const reference = `SPTX-FREE-${timestamp}`
+    const reference = `SPTX-REF-${timestamp}`
 
     // Prepare metadata for Firestore
     // For free events: ticketPrice = 0, totalAmount = 0, transactionFee = 0

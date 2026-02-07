@@ -111,7 +111,7 @@ export default function AccountDetails({
       }
 
       const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
-      const response = await fetch(`${BACKEND_URL}/verify?accountNumber=${accountNumber}&bankName=${encodeURIComponent(bankName)}`, {
+      const response = await fetch(`${BACKEND_URL}/v1/verify?accountNumber=${accountNumber}&bankName=${encodeURIComponent(bankName)}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${idToken}`,
