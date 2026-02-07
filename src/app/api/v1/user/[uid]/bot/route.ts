@@ -1,53 +1,46 @@
+// app/api/v1/user/[uid]/bot/route.ts
 import { NextRequest, NextResponse } from "next/server"
-import { adminDb, adminAuth } from "@/app/lib/firebase-admin"
+import { db } from "@/app/lib/firebase"
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore"
 import { randomBytes } from "crypto"
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL
-
-export async function POST(request: NextRequest, { params }: { params: { uid: string } }) {
+/**
+ * Generate Telegram connection token
+ * The token is stored temporarily and used to link a Telegram account
+ */
+export async function POST(
+  request: NextRequest,
+  props: { params: Promise<{ uid: string }> }
+) {
   try {
+    const params = await props.params
     const { uid } = params
 
     // Get authorization header
     const authHeader = request.headers.get("authorization")
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const token = authHeader.split("Bearer ")[1]
-
-    // Verify the token
-    const decodedToken = await adminAuth.verifyIdToken(token)
-    if (decodedToken.uid !== uid) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      )
     }
 
     const body = await request.json()
     const { action } = body
 
     if (action === "generate") {
-      // Generate connection token
+      // Generate a unique connection token (32 character hex string)
       const connectionToken = randomBytes(16).toString("hex")
 
-      if (!BACKEND_URL) {
-        return NextResponse.json({ error: "Backend URL not configured" }, { status: 500 })
-      }
-
-      // Call backend to store the token
-      const backendResponse = await fetch(`${BACKEND_URL}/v1/telegram/generate-token`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: uid,
-          token: connectionToken,
-        }),
+      // Store the token in a temporary collection with expiration
+      const tokenDocRef = doc(db, "telegram_tokens", connectionToken)
+      await setDoc(tokenDocRef, {
+        userId: uid,
+        token: connectionToken,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes expiry
+        used: false,
       })
-
-      if (!backendResponse.ok) {
-        throw new Error("Failed to generate token")
-      }
 
       return NextResponse.json({
         success: true,
@@ -55,59 +48,84 @@ export async function POST(request: NextRequest, { params }: { params: { uid: st
       })
     } else if (action === "disconnect") {
       // Disconnect Telegram account
-      await adminDb.collection("users").doc(uid).update({
+      const userDocRef = doc(db, "users", uid)
+      await updateDoc(userDocRef, {
         telegramConnected: false,
-        telegramUsername: "",
-        telegramChatId: "",
+        telegramUsername: null,
+        telegramChatId: null,
       })
 
       return NextResponse.json({
         success: true,
-        message: "Telegram account disconnected",
+        message: "Telegram account disconnected successfully",
       })
     }
 
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 })
+    return NextResponse.json(
+      { success: false, error: "Invalid action" },
+      { status: 400 }
+    )
   } catch (error) {
     console.error("Error handling Telegram bot request:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
+      { status: 500 }
+    )
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { uid: string } }) {
+/**
+ * Get Telegram connection status
+ */
+export async function GET(
+  request: NextRequest,
+  props: { params: Promise<{ uid: string }> }
+) {
   try {
+    const params = await props.params
     const { uid } = params
 
     // Get authorization header
     const authHeader = request.headers.get("authorization")
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const token = authHeader.split("Bearer ")[1]
-
-    // Verify the token
-    const decodedToken = await adminAuth.verifyIdToken(token)
-    if (decodedToken.uid !== uid) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      )
     }
 
     // Get user's Telegram connection status
-    const userDoc = await adminDb.collection("users").doc(uid).get()
+    const userDocRef = doc(db, "users", uid)
+    const userDoc = await getDoc(userDocRef)
 
-    if (!userDoc.exists) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    if (!userDoc.exists()) {
+      return NextResponse.json(
+        { success: false, error: "User not found" },
+        { status: 404 }
+      )
     }
 
     const userData = userDoc.data()
 
     return NextResponse.json({
       success: true,
-      telegramConnected: userData?.telegramConnected || false,
-      telegramUsername: userData?.telegramUsername || null,
+      telegramConnected: userData.telegramConnected || false,
+      telegramUsername: userData.telegramUsername || null,
+      telegramChatId: userData.telegramChatId || null,
     })
   } catch (error) {
     console.error("Error fetching Telegram status:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
+      { status: 500 }
+    )
   }
 }
