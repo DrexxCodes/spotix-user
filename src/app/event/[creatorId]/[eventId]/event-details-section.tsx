@@ -121,7 +121,7 @@ const EventCountdown: React.FC<EventCountdownProps> = ({ eventDate, eventStart }
             {timeLeft.days.toString().padStart(2, '0')}
           </div>
           <div className="text-xs md:text-sm font-semibold text-gray-600 text-center uppercase">
-            Days
+            DD
           </div>
         </div>
 
@@ -131,7 +131,7 @@ const EventCountdown: React.FC<EventCountdownProps> = ({ eventDate, eventStart }
             {timeLeft.hours.toString().padStart(2, '0')}
           </div>
           <div className="text-xs md:text-sm font-semibold text-gray-600 text-center uppercase">
-            Hours
+            HH
           </div>
         </div>
 
@@ -141,7 +141,7 @@ const EventCountdown: React.FC<EventCountdownProps> = ({ eventDate, eventStart }
             {timeLeft.minutes.toString().padStart(2, '0')}
           </div>
           <div className="text-xs md:text-sm font-semibold text-gray-600 text-center uppercase">
-            Mins
+            MM
           </div>
         </div>
 
@@ -151,7 +151,7 @@ const EventCountdown: React.FC<EventCountdownProps> = ({ eventDate, eventStart }
             {timeLeft.seconds.toString().padStart(2, '0')}
           </div>
           <div className="text-xs md:text-sm font-semibold text-gray-600 text-center uppercase">
-            Secs
+            SS
           </div>
         </div>
       </div>

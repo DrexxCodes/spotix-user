@@ -286,7 +286,7 @@ export default function ReferralsClient() {
               </div>
               <div className="flex items-center justify-center">
                 <Image
-                  src="/referral-illustration.jpg"
+                  src="/referral-illustration.svg"
                   alt="Referral Illustration"
                   width={300}
                   height={300}
@@ -317,7 +317,7 @@ export default function ReferralsClient() {
               </div>
               <div className="flex items-center justify-center">
                 <Image
-                  src="/referral-listing.jpg"
+                  src="/referral-list.svg"
                   alt="Referral Listing"
                   width={300}
                   height={300}

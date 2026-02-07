@@ -58,6 +58,23 @@ function PaymentSuccessContent() {
 
         console.log("Generating ticket for reference:", reference)
 
+        // Get stored payment data to determine if ticket is free
+        const storedPaymentData = sessionStorage.getItem("spotix_payment_data") || 
+                                   sessionStorage.getItem("paystack_payment_data")
+        
+        let isFreeTicket = false
+        
+        if (storedPaymentData) {
+          try {
+            const paymentData = JSON.parse(storedPaymentData)
+            // Check if ticket price is 0 (free ticket)
+            isFreeTicket = paymentData.ticketPrice === 0
+            console.log("Ticket price:", paymentData.ticketPrice, "Is free:", isFreeTicket)
+          } catch (parseError) {
+            console.error("Error parsing payment data:", parseError)
+          }
+        }
+
         // Call ticket generation API
         const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
@@ -67,7 +84,12 @@ function PaymentSuccessContent() {
           return
         }
 
-        const response = await fetch(`${BACKEND_URL}/v1/ticket`, {
+        // Use different endpoint based on ticket price
+        // Free tickets use /v1/ticket2, paid tickets use /v1/ticket
+        const ticketEndpoint = isFreeTicket ? `${BACKEND_URL}/v1/ticket/free` : `${BACKEND_URL}/v1/ticket`
+        console.log("Calling ticket endpoint:", ticketEndpoint)
+
+        const response = await fetch(ticketEndpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -93,6 +115,7 @@ function PaymentSuccessContent() {
           // Clear any stored payment data
           sessionStorage.removeItem("paystack_payment_data")
           sessionStorage.removeItem("spotix_payment_data")
+          sessionStorage.removeItem("selected_referral_code")
         } else {
           setError(data.message || "Ticket generation failed")
         }
@@ -127,12 +150,12 @@ function PaymentSuccessContent() {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
           <Loader2 className="w-16 h-16 animate-spin text-purple-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Processing Your Payment</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Processing Your Registration</h2>
           <p className="text-gray-600">Please wait while we generate your ticket...</p>
           <div className="mt-6 space-y-2">
             <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
               <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"></div>
-              <span>Verifying payment</span>
+              <span>Verifying registration</span>
             </div>
             <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
               <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse delay-100"></div>
@@ -157,7 +180,7 @@ function PaymentSuccessContent() {
               <XCircle className="w-10 h-10 text-red-600" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-4">Payment Issue</h2>
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-4">Registration Issue</h2>
           <p className="text-gray-600 text-center mb-6">{error}</p>
           <div className="space-y-3">
             <button
@@ -174,7 +197,7 @@ function PaymentSuccessContent() {
             </button>
           </div>
           <p className="text-center text-sm text-gray-500 mt-6">
-            If you were charged, please contact support with reference: {searchParams.get("reference")}
+            If you need assistance, please contact support with reference: {searchParams.get("reference")}
           </p>
         </div>
       </div>
@@ -184,6 +207,8 @@ function PaymentSuccessContent() {
   if (!ticketData) {
     return null
   }
+
+  const isFreeTicket = ticketData.ticketPrice === 0
 
   return (
     <>
@@ -222,7 +247,9 @@ function PaymentSuccessContent() {
                 <CheckCircle className="w-12 h-12 text-green-600" />
               </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              {isFreeTicket ? "Registration Successful!" : "Payment Successful!"}
+            </h1>
             <p className="text-lg text-gray-600">Your ticket has been generated</p>
           </div>
 
@@ -255,7 +282,9 @@ function PaymentSuccessContent() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Amount Paid</p>
-                  <p className="text-lg font-bold text-gray-900">₦{ticketData.totalAmount.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {isFreeTicket ? "FREE" : `₦${ticketData.totalAmount.toLocaleString()}`}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Date</p>
@@ -291,9 +320,14 @@ function PaymentSuccessContent() {
               </div>
 
               {/* Special Badges */}
-              {(ticketData.discountApplied || ticketData.referralUsed) && (
+              {(ticketData.discountApplied || ticketData.referralUsed || isFreeTicket) && (
                 <div className="flex flex-wrap gap-2">
-                  {ticketData.discountApplied && (
+                  {isFreeTicket && (
+                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
+                      🎁 Free Event
+                    </span>
+                  )}
+                  {ticketData.discountApplied && !isFreeTicket && (
                     <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-semibold rounded-full">
                       🎉 Discount Applied
                     </span>
@@ -308,7 +342,9 @@ function PaymentSuccessContent() {
 
               {/* Reference Number */}
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                <p className="text-sm text-gray-600 mb-1">Payment Reference</p>
+                <p className="text-sm text-gray-600 mb-1">
+                  {isFreeTicket ? "Registration Reference" : "Payment Reference"}
+                </p>
                 <p className="text-sm font-mono text-gray-900 break-all">{ticketData.ticketReference}</p>
               </div>
             </div>
