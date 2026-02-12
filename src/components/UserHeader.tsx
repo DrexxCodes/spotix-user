@@ -154,10 +154,6 @@ const UserHeader: React.FC = () => {
             <Bot size={20} />
             <Link href="https://t.me/SpotixNG_bot">Telegram Bot</Link>
           </NavItem>
-          <NavItem onClick={() => setMenuOpen(false)}>
-            <AppWindow size={20} />
-            <Link href="https://booker.spotix.com.ng">Dashboard</Link>
-          </NavItem>
         </NavList>
 
         {/* Auth-Aware Footer */}

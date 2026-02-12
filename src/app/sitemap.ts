@@ -1,36 +1,21 @@
 import { MetadataRoute } from 'next'
-import { initializeApp, getApps } from 'firebase/app'
-import { getFirestore, collection, getDocs, query, orderBy, limit } from 'firebase/firestore'
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-}
-
-// Initialize Firebase (only if not already initialized)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-const db = getFirestore(app)
+import { adminDb } from '@/app/lib/firebase-admin'
 
 // Base URL for your site
 const BASE_URL = 'https://spotix.com.ng'
 
-interface PublicEvent {
+interface UserEvent {
   eventName: string
-  creatorID: string
-  eventId: string
-  eventStartDate: string
-  timestamp: any
-  eventGroup?: boolean
-  imageURL?: string
+  eventImage?: string
+  eventDate?: string
+  eventEndDate?: string
+  createdBy?: string
+  isVerified?: boolean
+  isFree?: boolean
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Static routes with priorities and change frequencies
+  // Static routes — only pages that are publicly indexable and SEO-relevant
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: `${BASE_URL}/`,
@@ -42,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${BASE_URL}/home`,
       lastModified: new Date(),
-      changeFrequency: 'hourly',
+      changeFrequency: 'daily',
       priority: 0.9,
       images: [`${BASE_URL}/logo-full.png`],
     },
@@ -53,107 +38,60 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
     {
-      url: `${BASE_URL}/auth/login`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/auth/signup`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/iwss`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-    {
       url: `${BASE_URL}/vote`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.6,
     },
     {
-      url: `${BASE_URL}/booker-confirm`,
+      url: `${BASE_URL}/iwss`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: 'weekly',
       priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/iwss/settings`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.4,
-    },
-    {
-      url: `${BASE_URL}/profile`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.4,
-    },
-    {
-      url: `${BASE_URL}/ticket-history`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.4,
     },
   ]
 
   try {
-    // Fetch all public events from Firebase
-    const publicEventsQuery = query(
-      collection(db, 'publicEvents'),
-      orderBy('timestamp', 'desc'),
-      limit(1000) // Adjust limit based on your needs
-    )
-    
-    const eventsSnapshot = await getDocs(publicEventsQuery)
-    
+    // Use collectionGroup to query ALL userEvents across every creatorId
+    // This mirrors the data structure: events/{creatorId}/userEvents/{eventId}
+    const eventsSnapshot = await adminDb
+      .collectionGroup('userEvents')
+      .orderBy('eventDate', 'desc')
+      .limit(5000)
+      .get()
+
     const eventRoutes: MetadataRoute.Sitemap = []
-    const eventGroupRoutes: MetadataRoute.Sitemap = []
 
     eventsSnapshot.docs.forEach((doc) => {
-      const event = doc.data() as PublicEvent
+      const event = doc.data() as UserEvent
 
-      // Check if it's an event group
-      if (event.eventGroup === true) {
-        // Event Collection route
-        const encodedEventName = encodeURIComponent(event.eventName)
-        eventGroupRoutes.push({
-          url: `${BASE_URL}/event-group/${event.creatorID}/${encodedEventName}`,
-          lastModified: event.timestamp?.toDate() || new Date(),
-          changeFrequency: 'weekly',
-          priority: 0.7,
-          images: event.imageURL ? [event.imageURL] : undefined,
-        })
-      } else {
-        // Individual Event route
-        const eventId = event.eventId || doc.id
-        const eventDate = event.eventStartDate ? new Date(event.eventStartDate) : new Date()
-        const now = new Date()
-        
-        // Determine if event is upcoming or past
-        const isUpcoming = eventDate >= now
-        
-        eventRoutes.push({
-          url: `${BASE_URL}/event/${event.creatorID}/${eventId}`,
-          lastModified: event.timestamp?.toDate() || new Date(),
-          changeFrequency: isUpcoming ? 'daily' : 'monthly',
-          priority: isUpcoming ? 0.8 : 0.5,
-          images: event.imageURL ? [event.imageURL] : undefined,
-        })
-      }
+      // Extract creatorId from the document reference path:
+      // path is: events/{creatorId}/userEvents/{eventId}
+      const pathSegments = doc.ref.path.split('/')
+      const creatorId = pathSegments[1]
+      const eventId = doc.id
+
+      if (!creatorId || !eventId) return
+
+      const eventDate = event.eventDate ? new Date(event.eventDate) : null
+      const now = new Date()
+      const isUpcoming = eventDate ? eventDate >= now : false
+
+      eventRoutes.push({
+        url: `${BASE_URL}/event/${creatorId}/${eventId}`,
+        lastModified: eventDate || new Date(),
+        // 'monthly' signals roughly twice-a-month crawling to search engines
+        changeFrequency: 'monthly',
+        // Upcoming events get a higher priority than past ones
+        priority: isUpcoming ? 0.8 : 0.4,
+        images: event.eventImage ? [event.eventImage] : undefined,
+      })
     })
 
-    // Combine all routes
-    return [...staticRoutes, ...eventRoutes, ...eventGroupRoutes]
-    
+    return [...staticRoutes, ...eventRoutes]
   } catch (error) {
     console.error('Error generating sitemap:', error)
-    // Return static routes only if Firebase fetch fails
+    // Gracefully fall back to static routes if Firebase fails
     return staticRoutes
   }
 }

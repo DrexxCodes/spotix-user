@@ -6,7 +6,7 @@
  * @returns The VAT fee amount (as a number)
  */
 export const calculateVATFee = (ticketPrice: number): number => {
-  const percentageFee = ticketPrice * 0.025; // 2.5% of ticket price
+  const percentageFee = ticketPrice * 0.05; // 5% of ticket price
   const flatFee = 100; // Fixed flat fee
   const totalVATFee = percentageFee + flatFee; // Add them together
   
@@ -14,11 +14,6 @@ export const calculateVATFee = (ticketPrice: number): number => {
 };
 
 /**
- * Calculate the final ticket price including VAT
- * Example: For a ₦5,000 ticket:
- *   - Original price: 5,000
- *   - VAT fee: 225 (from calculateVATFee)
- *   - Final price: 5,225
  * 
  * @param ticketPrice - The original ticket price (must be a number)
  * @returns The final price (original price + VAT fee, as a number)

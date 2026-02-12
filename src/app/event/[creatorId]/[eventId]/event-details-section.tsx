@@ -222,43 +222,41 @@ const EventDetailsSection: React.FC<EventDetailsTabProps> = ({
 
   return (
     <div className="bg-gradient-to-br from-white via-purple-50/30 to-white rounded-2xl shadow-lg overflow-hidden">
-      {/* Header with Gradient Banner */}
-      <div className="bg-gradient-to-r from-[#6b2fa5] via-purple-600 to-[#6b2fa5] p-6 md:p-8">
-        <div className="flex items-start gap-4 mb-4">
+      {/* Header without Gradient Banner */}
+      <div className="p-6 md:p-8 border-b-2 border-gray-100">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-6">
           <div className="flex-1">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight mb-3">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-3">
               {eventData.eventName}
             </h1>
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white px-4 py-2 rounded-full shadow-lg">
+            <div className="inline-flex items-center gap-2 bg-purple-100 border-2 border-[#6b2fa5] text-[#6b2fa5] px-4 py-2 rounded-full shadow-sm">
               <Award size={18} />
               <span className="font-bold text-sm md:text-base">{eventData.eventType}</span>
             </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            <button
+              className={`group flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all font-bold shadow-md transform hover:scale-105 ${
+                isLiked
+                  ? "bg-purple-100 text-[#6b2fa5] border-2 border-[#6b2fa5]"
+                  : "bg-white text-gray-700 hover:bg-purple-50 hover:text-[#6b2fa5] border-2 border-gray-300 hover:border-[#6b2fa5]"
+              }`}
+              onClick={onToggleLike}
+              disabled={isLiking}
+            >
+              <Heart 
+                size={20} 
+                className={`transition-all ${isLiked ? "fill-current" : "group-hover:fill-[#6b2fa5]"}`} 
+              />
+              <span>
+                {formatNumber(likeCount)} {likeCount === 1 ? "Like" : "Likes"}
+              </span>
+            </button>
+
             <ShareBtn url={eventUrl} title={`Join me at ${eventData.eventName}`} description={shareDescription} />
           </div>
-
-          <button
-            className={`group flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all font-bold shadow-lg transform hover:scale-105 ${
-              isLiked
-                ? "bg-white text-red-600 hover:bg-red-50 border-2 border-white"
-                : "bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border-2 border-white/30"
-            }`}
-            onClick={onToggleLike}
-            disabled={isLiking}
-          >
-            <Heart 
-              size={20} 
-              className={`transition-all ${isLiked ? "fill-current animate-pulse" : "group-hover:scale-110"}`} 
-            />
-            <span>
-              {formatNumber(likeCount)} {likeCount === 1 ? "Like" : "Likes"}
-            </span>
-          </button>
         </div>
       </div>
 
@@ -266,13 +264,13 @@ const EventDetailsSection: React.FC<EventDetailsTabProps> = ({
       <div className="p-6 md:p-8 space-y-8">
 
         {/* Date & Time Information - Redesigned */}
-        <div className="bg-white rounded-2xl shadow-md border-2 border-purple-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-[#6b2fa5] via-purple-600 to-[#6b2fa5] px-6 py-4">
+        <div className="bg-white rounded-2xl shadow-md border-2 border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b-2 border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <CalendarDays size={20} className="text-white" />
+              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                <CalendarDays size={20} className="text-[#6b2fa5]" />
               </div>
-              <h3 className="font-bold text-white text-xl">Event Schedule</h3>
+              <h3 className="font-bold text-gray-900 text-xl">Event Schedule</h3>
             </div>
           </div>
 
@@ -407,14 +405,14 @@ const EventDetailsSection: React.FC<EventDetailsTabProps> = ({
 
         {/* Event Capacity - Only if enabled */}
         {eventData.enableMaxSize && (
-          <div className="bg-white rounded-xl shadow-md border-2 border-purple-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-[#6b2fa5] to-purple-600 px-4 py-3">
+          <div className="bg-white rounded-xl shadow-md border-2 border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b-2 border-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                    <Users size={16} className="text-white" />
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Users size={16} className="text-[#6b2fa5]" />
                   </div>
-                  <h3 className="font-bold text-white text-lg">Event Capacity</h3>
+                  <h3 className="font-bold text-gray-900 text-lg">Event Capacity</h3>
                 </div>
                 {isSoldOut && (
                   <span className="inline-flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
@@ -504,17 +502,17 @@ const EventDetailsSection: React.FC<EventDetailsTabProps> = ({
 
         {/* Event Description */}
         {eventData.eventDescription && (
-          <div className="bg-white rounded-xl shadow-md border-2 border-purple-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-[#6b2fa5] to-purple-600 px-4 py-3">
+          <div className="bg-white rounded-xl shadow-md border-2 border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b-2 border-gray-100">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <Info size={16} className="text-white" />
+                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Info size={16} className="text-[#6b2fa5]" />
                 </div>
-                <h3 className="font-bold text-white text-lg">About This Event</h3>
+                <h3 className="font-bold text-gray-900 text-lg">About This Event</h3>
               </div>
             </div>
             <div className="p-6 space-y-6">
-              <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
+              <div className="prose prose-gray max-w-none">
                 <p className="text-gray-800 leading-relaxed text-base whitespace-pre-wrap">
                   {eventData.eventDescription}
                 </p>
