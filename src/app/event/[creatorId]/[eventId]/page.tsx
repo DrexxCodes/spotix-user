@@ -50,7 +50,7 @@ async function fetchEventData(creatorId: string, eventId: string): Promise<Event
 
     const eventData = eventDoc.data()
 
-    // Transform the data to match EventType interface
+    // Transform the data to match EventType interface cos we don't want what happened last time
     return {
       id: eventDoc.id,
       eventName: eventData?.eventName || "",
@@ -100,7 +100,7 @@ export async function generateMetadata({
       }
     }
 
-    // Fetch event data directly from Firestore (no API call)
+    // Fetch event data directly 
     const eventData = await fetchEventData(creatorId, eventId)
 
     if (!eventData) {
@@ -171,5 +171,6 @@ export default async function EventPage({
   // Fetch event data for SSR (reuses same function)
   const eventData = await fetchEventData(resolvedParams.creatorId, resolvedParams.eventId)
   
+  // Pass it all to the client
   return <ClientPage params={resolvedParams} initialEventData={eventData} />
 }

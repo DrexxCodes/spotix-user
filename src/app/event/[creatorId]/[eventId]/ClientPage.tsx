@@ -864,7 +864,7 @@ export default function ClientPage({ params, initialEventData }: ClientPageProps
 
       <div ref={footerRef}>
         <Footer />
-      </div>
+      </div> 
 
       <style jsx>{`
         @keyframes marquee-smooth {
