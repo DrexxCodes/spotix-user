@@ -191,7 +191,7 @@ const UserHeader: React.FC = () => {
                       e.currentTarget.style.boxShadow = "0 4px 12px rgba(107, 47, 165, 0.3)"
                     }}
                   >
-                    Booker Dashboard
+                    Go to Dashboard
                   </FooterLink>
                   <FooterLink
                     as="button"
