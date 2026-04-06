@@ -728,8 +728,10 @@ export default function PaymentClient() {
                 isFreeEvent={isFreeEvent}
                 creatingReference={creatingReference}
                 isSurveyComplete={isSurveyComplete}
+                isGuest={!user}
                 onSelectMethod={handlePaymentMethodSelect}
                 onProceed={handleProceedPayment}
+                onSignIn={handleShowSignIn}
               />
             </div>
           </div>
