@@ -412,31 +412,44 @@ export default function ClientPage({ params, initialEventData }: ClientPageProps
   // ── Buy ticket ────────────────────────────────────────────────────────────
 
   const handleBuyTicket = (cart: any[]) => {
-    if (!eventData) return
+    if (!eventData || cart.length === 0) return
     if (isEventPassed) { setShowPassedDialog(true); return }
     if (isSoldOut) { alert("Sorry, this event is sold out!"); return }
     if (isSaleEnded) { alert("Sorry, ticket sales have ended!"); return }
 
-    if (!isAuthenticated) {
-      if (typeof window !== "undefined")
-        sessionStorage.setItem("redirectAfterLogin", window.location.pathname)
-      router.push("/auth/login")
-      return
-    }
-
+    // Allow both authenticated and guest users
     // Cart is already saved to localStorage by buy-ticket-dialog
-    // Store additional event data needed for payment
+    // Store event data needed for payment
     if (typeof window !== "undefined") {
+      // Use first cart item for the payment (or can be extended for multi-ticket support)
+      const firstItem = cart[0]
       const paymentData = {
         eventId,
         eventName: eventData.eventName,
+        ticketType: firstItem.ticketType,
+        ticketPrice: firstItem.price,
+        eventCreatorId: createdBy,
+        eventVenue: eventData.eventVenue || "",
+        eventType: eventData.eventType || "",
+        eventDate: eventData.eventDate || "",
+        eventEndDate: eventData.eventEndDate || "",
+        eventStart: eventData.eventStart || "",
+        eventEnd: eventData.eventEnd || "",
+        stopDate: eventData.stopDate || "",
+        bookerName: eventData.bookerName || "",
+        bookerEmail: eventData.bookerEmail || "",
         cart: cart,
-        eventcreatedBy: createdBy,
       }
       sessionStorage.setItem("spotix_payment_data", JSON.stringify(paymentData))
     }
     setShowBuyTicketDialog(false)
-    router.push("/payment")
+    
+    // If not authenticated, show guest form first
+    if (!isAuthenticated) {
+      router.push("/payment?mode=guest")
+    } else {
+      router.push("/payment")
+    }
   }
 
   // ── Render guards ─────────────────────────────────────────────────────────

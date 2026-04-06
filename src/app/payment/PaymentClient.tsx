@@ -184,22 +184,18 @@ export default function PaymentClient() {
     existingData: PaymentData
   ): Promise<PaymentData> => {
     try {
-      const eventDocRef = doc(db, "events", creatorId, "userEvents", eventId)
-      const eventDoc = await getDoc(eventDocRef)
+      // Use the new flat structure API
+      const response = await fetch(`/api/v1/event?eventId=${eventId}`)
+      
+      if (!response.ok) {
+        console.error("Failed to fetch event details")
+        return existingData
+      }
 
-      if (eventDoc.exists()) {
-        const data = eventDoc.data()
-
-        const bookerDocRef = doc(db, "users", creatorId)
-        const bookerDoc = await getDoc(bookerDocRef)
-        let bookerName = "Event Host"
-        let bookerEmail = "support@spotix.com.ng"
-
-        if (bookerDoc.exists()) {
-          const bookerData = bookerDoc.data()
-          bookerName = bookerData.bookerName || bookerData.fullName || "Event Host"
-          bookerEmail = bookerData.email || "support@spotix.com.ng"
-        }
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        const data = result.data
 
         return {
           ...existingData,
@@ -209,9 +205,9 @@ export default function PaymentClient() {
           eventEndDate: data.eventEndDate || existingData.eventEndDate || "",
           eventStart: data.eventStart || existingData.eventStart || "",
           eventEnd: data.eventEnd || existingData.eventEnd || "",
-          stopDate: data.enableStopDate ? data.stopDate : existingData.stopDate,
-          bookerName: bookerName,
-          bookerEmail: bookerEmail,
+          stopDate: data.stopDate || existingData.stopDate || "",
+          bookerName: data.bookerName || "Event Host",
+          bookerEmail: data.bookerEmail || "support@spotix.com.ng",
         }
       }
 
@@ -329,16 +325,11 @@ export default function PaymentClient() {
   }
 
   const createPaymentReference = async () => {
-    if (!paymentData || !user || !userData) return null
+    if (!paymentData || !userData) return null
 
     setCreatingReference(true)
 
     try {
-      const idToken = await auth.currentUser?.getIdToken()
-      if (!idToken) {
-        throw new Error("Authentication required")
-      }
-
       const isFreeEvent = paymentData.ticketPrice === 0
 
       let discountAmount = 0
@@ -375,6 +366,9 @@ export default function PaymentClient() {
         bookerEmail: paymentData.bookerEmail || null,
         userFullName: userData.fullName || "Valued Customer",
         userEmail: userData.email,
+        guestEmail: !user ? (guestEmail || userData.email) : null,
+        guestFullName: !user ? (guestFullName || userData.fullName) : null,
+        guestPhone: !user ? guestPhone : null,
       }
 
       // Add payment-specific fields only for paid events
@@ -386,12 +380,19 @@ export default function PaymentClient() {
         requestBody.discountData = discountData || null
       }
 
+      const headers: any = {
+        "Content-Type": "application/json",
+      }
+
+      // Only add auth header if user is authenticated
+      if (user && auth.currentUser) {
+        const idToken = await auth.currentUser.getIdToken()
+        headers.Authorization = `Bearer ${idToken}`
+      }
+
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
+        headers,
         body: JSON.stringify(requestBody),
       })
 
@@ -703,7 +704,6 @@ export default function PaymentClient() {
               {/* Event Survey Form */}
               {paymentData && userData && (
                 <EventSurveyForm
-                  userId={paymentData.eventCreatorId}
                   eventId={paymentData.eventId}
                   ticketType={paymentData.ticketType}
                   userEmail={userData.email}
