@@ -102,10 +102,12 @@ export default function PaymentClient() {
         setUser(currentUser)
         await fetchUserData(currentUser.uid)
         await fetchWalletData(currentUser.uid)
+        // Only set loading to false after user data is fetched
+        setDataLoading(false)
       } else {
         // Allow guest checkout - don't force redirect
         setUser(null)
-        setDataLoading(false)
+        // Don't set dataLoading to false here - let payment data loading handle it
       }
     })
 
