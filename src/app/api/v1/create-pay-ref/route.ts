@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
       eventCreatorId,
       ticketPrice,
       ticketType,
+      ticketTypes,
       totalAmount,
       discountCode,
       discountData,
@@ -52,9 +53,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required fields
-    if (!eventId || !eventCreatorId || ticketPrice === undefined || !ticketType || totalAmount === undefined) {
+    // Accept either single ticketType or array ticketTypes
+    const hasTicketInfo = ticketType || (ticketTypes && Array.isArray(ticketTypes) && ticketTypes.length > 0)
+    if (!eventId || !eventCreatorId || ticketPrice === undefined || !hasTicketInfo || totalAmount === undefined) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing required fields: eventId, eventCreatorId, ticket info, ticketPrice, totalAmount" },
         { status: 400 }
       )
     }
@@ -77,7 +80,8 @@ export async function POST(request: NextRequest) {
       eventStart: eventStart || "",
       eventEnd: eventEnd || "",
       ticketPrice: Number(ticketPrice),
-      ticketType,
+      ticketType: ticketType || null,
+      ticketTypes: ticketTypes || (ticketType ? [{ type: ticketType }] : []),
       totalAmount: Number(totalAmount),
       vendor: "paystack",
       status: "pending",

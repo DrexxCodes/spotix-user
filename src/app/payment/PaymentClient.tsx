@@ -104,7 +104,7 @@ export default function PaymentClient() {
   const [surveyRequiredTickets, setSurveyRequiredTickets] = useState<Set<string>>(new Set())
   const [checkingSurveyRequirements, setCheckingSurveyRequirements] = useState(false)
 
-  // Load cart and organizer from localStorage (client-side only)
+  // Load cart, organizer, and guest data from localStorage (client-side only)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedCart = JSON.parse(localStorage.getItem("spotix_cart") || "[]")
@@ -119,6 +119,20 @@ export default function PaymentClient() {
           setOrganizerId(organizerData.organizerId || "")
         } catch (error) {
           console.error("Error parsing organizer data:", error)
+        }
+      }
+      
+      // Load guest data from localStorage if it exists
+      const guestData = localStorage.getItem("spotix_guest_checkout")
+      if (guestData) {
+        try {
+          const parsed = JSON.parse(guestData)
+          setGuestFullName(parsed.guestFullName || "")
+          setGuestEmail(parsed.guestEmail || "")
+          setGuestPhone(parsed.guestPhone || "")
+          console.log("[v0] Loaded guest data from localStorage on mount")
+        } catch (error) {
+          console.error("Error parsing guest data:", error)
         }
       }
     }
@@ -454,9 +468,31 @@ export default function PaymentClient() {
 
       // For guests, include guest data
       if (!user) {
-        requestBody.guestEmail = guestEmail
-        requestBody.guestFullName = guestFullName
-        requestBody.guestPhone = guestPhone
+        // Use state variables first, but fall back to localStorage if empty
+        let finalGuestEmail = guestEmail
+        let finalGuestFullName = guestFullName
+        let finalGuestPhone = guestPhone
+        
+        // If state variables are empty, try to load from localStorage
+        if (!finalGuestEmail || !finalGuestFullName) {
+          const savedGuestData = localStorage.getItem("spotix_guest_checkout")
+          if (savedGuestData) {
+            try {
+              const parsed = JSON.parse(savedGuestData)
+              finalGuestEmail = finalGuestEmail || parsed.guestEmail
+              finalGuestFullName = finalGuestFullName || parsed.guestFullName
+              finalGuestPhone = finalGuestPhone || parsed.guestPhone
+              console.log("[v0] Loaded guest data from localStorage")
+            } catch (error) {
+              console.error("[v0] Error parsing guest data from localStorage:", error)
+            }
+          }
+        }
+        
+        requestBody.guestEmail = finalGuestEmail
+        requestBody.guestFullName = finalGuestFullName
+        requestBody.guestPhone = finalGuestPhone
+        console.log("[v0] Guest checkout - guestEmail:", finalGuestEmail, "guestFullName:", finalGuestFullName, "guestPhone:", finalGuestPhone)
       }
 
       // Add payment-specific fields only for paid events
@@ -468,6 +504,8 @@ export default function PaymentClient() {
         requestBody.discountCode = discountData?.code || null
         requestBody.discountData = discountData || null
       }
+
+      console.log("[v0] Creating payment reference with body:", requestBody)
 
       const headers: any = {
         "Content-Type": "application/json",
@@ -651,6 +689,7 @@ export default function PaymentClient() {
 
   const handleGuestSubmit = (fullName: string, email: string, phone: string) => {
     // Set guest user data
+    console.log("[v0] Guest form submitted - fullName:", fullName, "email:", email, "phone:", phone)
     setUserData({
       fullName,
       username: fullName.split(" ")[0],
@@ -660,6 +699,17 @@ export default function PaymentClient() {
     setGuestFullName(fullName)
     setGuestEmail(email)
     setGuestPhone(phone)
+    
+    // Persist guest data to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("spotix_guest_checkout", JSON.stringify({
+        guestFullName: fullName,
+        guestEmail: email,
+        guestPhone: phone,
+      }))
+    }
+    
+    console.log("[v0] Guest state set - guestFullName, guestEmail, guestPhone")
     setShowGuestForm(false)
   }
 
