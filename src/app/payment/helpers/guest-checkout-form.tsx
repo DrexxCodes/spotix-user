@@ -87,7 +87,7 @@ export default function GuestCheckoutForm({
                       })
                     }
                   }}
-                  className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 ${
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 text-gray-900 ${
                     errors.fullName
                       ? "border-red-500 bg-red-50"
                       : "border-gray-200 bg-gray-50"
@@ -124,7 +124,7 @@ export default function GuestCheckoutForm({
                       })
                     }
                   }}
-                  className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 ${
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 text-gray-900 ${
                     errors.email
                       ? "border-red-500 bg-red-50"
                       : "border-gray-200 bg-gray-50"
@@ -152,7 +152,7 @@ export default function GuestCheckoutForm({
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:border-[#6b2fa5] focus:bg-white transition-all"
+                  className="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:border-[#6b2fa5] focus:bg-white transition-all"
                   placeholder="+234 (0) 800 000 0000"
                   disabled={isLoading}
                 />

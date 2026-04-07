@@ -99,6 +99,10 @@ export default function PaymentClient() {
   const [organizerName, setOrganizerName] = useState("")
   const [organizerEmail, setOrganizerEmail] = useState("")
   const [organizerId, setOrganizerId] = useState("")
+  
+  // Survey state for multiple tickets
+  const [surveyRequiredTickets, setSurveyRequiredTickets] = useState<Set<string>>(new Set())
+  const [checkingSurveyRequirements, setCheckingSurveyRequirements] = useState(false)
 
   // Load cart and organizer from localStorage (client-side only)
   useEffect(() => {
@@ -119,6 +123,42 @@ export default function PaymentClient() {
       }
     }
   }, [])
+
+  // Check survey requirements for all ticket types in cart
+  useEffect(() => {
+    if (!paymentData || cart.length === 0 || !userData) return
+
+    const checkAllTicketsSurveyRequirements = async () => {
+      setCheckingSurveyRequirements(true)
+      const requiredTickets = new Set<string>()
+
+      try {
+        // Check each unique ticket type in cart
+        const uniqueTicketTypes = Array.from(new Set(cart.map(item => item.ticketType)))
+        
+        for (const ticketType of uniqueTicketTypes) {
+          const response = await fetch(
+            `/api/v1/survey?eventId=${paymentData.eventId}&ticketType=${encodeURIComponent(ticketType)}`
+          )
+          
+          if (response.ok) {
+            const result = await response.json()
+            if (result.requiresForm) {
+              requiredTickets.add(ticketType)
+            }
+          }
+        }
+
+        setSurveyRequiredTickets(requiredTickets)
+      } catch (error) {
+        console.error("Error checking survey requirements:", error)
+      } finally {
+        setCheckingSurveyRequirements(false)
+      }
+    }
+
+    checkAllTicketsSurveyRequirements()
+  }, [paymentData, cart, userData])
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -616,6 +656,10 @@ export default function PaymentClient() {
       username: fullName.split(" ")[0],
       email,
     })
+    // Also set guest state variables for API call
+    setGuestFullName(fullName)
+    setGuestEmail(email)
+    setGuestPhone(phone)
     setShowGuestForm(false)
   }
 
@@ -755,19 +799,26 @@ export default function PaymentClient() {
               />
 
               {/* Event Survey Form */}
-              {paymentData && userData && cart.length > 0 && (
-                <EventSurveyForm
-                  eventId={paymentData.eventId}
-                  ticketType={cart[0].ticketType}
-                  userEmail={userData.email}
-                  onFormComplete={(responses) => {
-                    setSurveyResponses(responses)
-                    setIsSurveyComplete(true)
-                  }}
-                  onFormIncomplete={() => {
-                    setIsSurveyComplete(false)
-                  }}
-                />
+              {paymentData && userData && cart.length > 0 && surveyRequiredTickets.size > 0 && (
+                <div className="space-y-4">
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-blue-900">
+                      One or more of the tickets you selected requires you to fill a form
+                    </p>
+                  </div>
+                  <EventSurveyForm
+                    eventId={paymentData.eventId}
+                    ticketType={cart[0].ticketType}
+                    userEmail={userData.email}
+                    onFormComplete={(responses) => {
+                      setSurveyResponses(responses)
+                      setIsSurveyComplete(true)
+                    }}
+                    onFormIncomplete={() => {
+                      setIsSurveyComplete(false)
+                    }}
+                  />
+                </div>
               )}
             </div>
 
