@@ -130,7 +130,6 @@ export default function PaymentClient() {
           setGuestFullName(parsed.guestFullName || "")
           setGuestEmail(parsed.guestEmail || "")
           setGuestPhone(parsed.guestPhone || "")
-          console.log("[v0] Loaded guest data from localStorage on mount")
         } catch (error) {
           console.error("Error parsing guest data:", error)
         }
@@ -482,9 +481,8 @@ export default function PaymentClient() {
               finalGuestEmail = finalGuestEmail || parsed.guestEmail
               finalGuestFullName = finalGuestFullName || parsed.guestFullName
               finalGuestPhone = finalGuestPhone || parsed.guestPhone
-              console.log("[v0] Loaded guest data from localStorage")
             } catch (error) {
-              console.error("[v0] Error parsing guest data from localStorage:", error)
+              console.error("Error parsing guest data from localStorage:", error)
             }
           }
         }
@@ -492,7 +490,6 @@ export default function PaymentClient() {
         requestBody.guestEmail = finalGuestEmail
         requestBody.guestFullName = finalGuestFullName
         requestBody.guestPhone = finalGuestPhone
-        console.log("[v0] Guest checkout - guestEmail:", finalGuestEmail, "guestFullName:", finalGuestFullName, "guestPhone:", finalGuestPhone)
       }
 
       // Add payment-specific fields only for paid events
@@ -504,8 +501,6 @@ export default function PaymentClient() {
         requestBody.discountCode = discountData?.code || null
         requestBody.discountData = discountData || null
       }
-
-      console.log("[v0] Creating payment reference with body:", requestBody)
 
       const headers: any = {
         "Content-Type": "application/json",
@@ -545,8 +540,9 @@ export default function PaymentClient() {
 
     const isFreeEvent = paymentData.ticketPrice === 0
 
-    // Check if survey is complete (if required)
-    if (!isSurveyComplete && surveyResponses === null) {
+    // Check if survey is complete (only if a survey is actually required for the tickets)
+    const hasSurveyRequired = surveyRequiredTickets.size > 0
+    if (hasSurveyRequired && !isSurveyComplete && surveyResponses === null) {
       alert("Please complete the event registration form before proceeding.")
       return
     }
@@ -689,7 +685,6 @@ export default function PaymentClient() {
 
   const handleGuestSubmit = (fullName: string, email: string, phone: string) => {
     // Set guest user data
-    console.log("[v0] Guest form submitted - fullName:", fullName, "email:", email, "phone:", phone)
     setUserData({
       fullName,
       username: fullName.split(" ")[0],
@@ -709,7 +704,6 @@ export default function PaymentClient() {
       }))
     }
     
-    console.log("[v0] Guest state set - guestFullName, guestEmail, guestPhone")
     setShowGuestForm(false)
   }
 
@@ -880,6 +874,7 @@ export default function PaymentClient() {
                 isFreeEvent={isFreeEvent}
                 creatingReference={creatingReference}
                 isSurveyComplete={isSurveyComplete}
+                isSurveyRequired={surveyRequiredTickets.size > 0}
                 isGuest={!user}
                 onSelectMethod={handlePaymentMethodSelect}
                 onProceed={handleProceedPayment}

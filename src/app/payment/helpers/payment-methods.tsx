@@ -8,6 +8,7 @@ interface PaymentMethodsProps {
   isFreeEvent: boolean
   creatingReference: boolean
   isSurveyComplete: boolean
+  isSurveyRequired: boolean
   isGuest: boolean
   onSelectMethod: (method: string) => void
   onProceed: () => void
@@ -24,6 +25,7 @@ export default function PaymentMethods({
   isFreeEvent,
   creatingReference,
   isSurveyComplete,
+  isSurveyRequired,
   isGuest,
   onSelectMethod,
   onProceed,
@@ -152,7 +154,7 @@ export default function PaymentMethods({
       )}
 
       {/* Survey Warning */}
-      {!isSurveyComplete && (
+      {isSurveyRequired && !isSurveyComplete && (
         <div className="mt-4 p-3 sm:p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
           <div className="flex items-start gap-3">
             <svg
@@ -181,7 +183,7 @@ export default function PaymentMethods({
       {/* Proceed Button */}
       <button
         onClick={onProceed}
-        disabled={(!selectedMethod && !isFreeEvent) || creatingReference || !isSurveyComplete}
+        disabled={(!selectedMethod && !isFreeEvent) || creatingReference || (isSurveyRequired && !isSurveyComplete)}
         className="w-full mt-4 sm:mt-6 py-3 sm:py-4 text-sm sm:text-base text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         style={{ background: "#6b2fa5" }}
       >
