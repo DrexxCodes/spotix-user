@@ -421,13 +421,12 @@ export default function ClientPage({ params, initialEventData }: ClientPageProps
     // Cart is already saved to localStorage by buy-ticket-dialog
     // Store event data needed for payment
     if (typeof window !== "undefined") {
-      // Use first cart item for the payment (or can be extended for multi-ticket support)
-      const firstItem = cart[0]
+      // Calculate total price from cart
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
       const paymentData = {
         eventId,
         eventName: eventData.eventName,
-        ticketType: firstItem.ticketType,
-        ticketPrice: firstItem.price,
+        ticketPrice: totalPrice, // Total of all tickets
         eventCreatorId: createdBy,
         eventVenue: eventData.eventVenue || "",
         eventType: eventData.eventType || "",

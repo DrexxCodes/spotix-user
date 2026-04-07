@@ -94,12 +94,29 @@ export default function PaymentClient() {
   const [guestPhone, setGuestPhone] = useState("")
   const [showGuestForm, setShowGuestForm] = useState(false)
   const [cart, setCart] = useState<any[]>([])
+  
+  // Organizer state
+  const [organizerName, setOrganizerName] = useState("")
+  const [organizerEmail, setOrganizerEmail] = useState("")
+  const [organizerId, setOrganizerId] = useState("")
 
-  // Load cart from localStorage (client-side only)
+  // Load cart and organizer from localStorage (client-side only)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedCart = JSON.parse(localStorage.getItem("spotix_cart") || "[]")
       setCart(savedCart)
+      
+      const organizer = localStorage.getItem("spotix_organizer")
+      if (organizer) {
+        try {
+          const organizerData = JSON.parse(organizer)
+          setOrganizerName(organizerData.bookername || "")
+          setOrganizerEmail(organizerData.bookeremail || "")
+          setOrganizerId(organizerData.organizerId || "")
+        } catch (error) {
+          console.error("Error parsing organizer data:", error)
+        }
+      }
     }
   }, [])
 
@@ -334,7 +351,7 @@ export default function PaymentClient() {
   }
 
   const createPaymentReference = async () => {
-    if (!paymentData) return null
+    if (!paymentData || cart.length === 0) return null
     
     // For guests, userData won't be set from Firestore, but we need guestEmail/guestFullName
     // For authenticated users, userData must be set
@@ -345,26 +362,36 @@ export default function PaymentClient() {
     try {
       const isFreeEvent = paymentData.ticketPrice === 0
 
+      // Calculate totals from cart items
+      const subtotalBeforeDiscount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      const totalVat = cart.reduce((sum, item) => sum + ((item.vat || 0) * item.quantity), 0)
+      
       let discountAmount = 0
       if (discountData && !isFreeEvent) {
         if (discountData.discountType === "percentage") {
-          discountAmount = (paymentData.ticketPrice * discountData.discountValue) / 100
+          discountAmount = (subtotalBeforeDiscount * discountData.discountValue) / 100
         } else {
           discountAmount = discountData.discountValue
         }
       }
 
-      const subtotal = paymentData.ticketPrice - discountAmount
-      const vatFee = isFreeEvent ? 0 : calculateVATFee(Number(paymentData.ticketPrice))
-      const totalAmount = subtotal + vatFee
+      const subtotal = subtotalBeforeDiscount - discountAmount
+      const totalAmount = subtotal + totalVat
 
       // Use different endpoint for free events
       const endpoint = isFreeEvent ? "/api/v1/ref/free" : "/api/v1/create-pay-ref"
 
+      // Create array of ticket types with quantities
+      const ticketTypes = cart.map(item => ({
+        type: item.ticketType,
+        quantity: item.quantity,
+        price: item.price,
+      }))
+
       const requestBody: any = {
         eventId: paymentData.eventId,
-        eventCreatorId: paymentData.eventCreatorId,
-        ticketType: paymentData.ticketType,
+        eventCreatorId: organizerId || paymentData.eventCreatorId,
+        ticketTypes: ticketTypes,
         referralCode: referralData?.code || null,
         referralData: referralData || null,
         eventName: paymentData.eventName,
@@ -375,8 +402,8 @@ export default function PaymentClient() {
         eventStart: paymentData.eventStart || null,
         eventEnd: paymentData.eventEnd || null,
         stopDate: paymentData.stopDate || null,
-        bookerName: paymentData.bookerName || null,
-        bookerEmail: paymentData.bookerEmail || null,
+        bookerName: organizerName || paymentData.bookerName || null,
+        bookerEmail: organizerEmail || paymentData.bookerEmail || null,
       }
 
       // For authenticated users, include user data
@@ -394,9 +421,10 @@ export default function PaymentClient() {
 
       // Add payment-specific fields only for paid events
       if (!isFreeEvent) {
-        requestBody.ticketPrice = paymentData.ticketPrice
+        requestBody.ticketPrice = subtotalBeforeDiscount
         requestBody.totalAmount = totalAmount
-        requestBody.transactionFee = vatFee
+        requestBody.transactionFee = totalVat
+        requestBody.discountAmount = discountAmount
         requestBody.discountCode = discountData?.code || null
         requestBody.discountData = discountData || null
       }
@@ -411,7 +439,6 @@ export default function PaymentClient() {
         headers.Authorization = `Bearer ${idToken}`
       }
 
-      console.log("[v0] Creating payment reference with body:", requestBody)
       const response = await fetch(endpoint, {
         method: "POST",
         headers,
@@ -420,7 +447,6 @@ export default function PaymentClient() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        console.log("[v0] Payment reference creation failed:", errorData)
         throw new Error(errorData.error || "Failed to create reference")
       }
 
@@ -455,6 +481,8 @@ export default function PaymentClient() {
       // Submit survey responses if they exist
       if (surveyResponses && Object.keys(surveyResponses).length > 0) {
         try {
+          // Use first ticket type from cart if available
+          const primaryTicketType = cart.length > 0 ? cart[0].ticketType : paymentData.ticketType
           await fetch("/api/v1/survey/response", {
             method: "POST",
             headers: {
@@ -467,7 +495,7 @@ export default function PaymentClient() {
               attendeeInfo: {
                 fullName: userData.fullName,
                 email: userData.email,
-                ticketType: paymentData.ticketType,
+                ticketType: primaryTicketType,
               },
             }),
           })
@@ -527,7 +555,7 @@ export default function PaymentClient() {
             attendeeInfo: {
               fullName: userData.fullName,
               email: userData.email,
-              ticketType: paymentData.ticketType,
+              ticketType: cart.length > 0 ? cart[0].ticketType : paymentData.ticketType,
             },
           }),
         })
@@ -547,12 +575,14 @@ export default function PaymentClient() {
     } else {
       sessionStorage.setItem("spotix_payment_data", JSON.stringify(paymentDataWithExtras))
 
+      // Calculate total from cart
+      const totalFromCart = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
       const params = new URLSearchParams({
         eventId: paymentData.eventId,
         eventName: paymentData.eventName,
-        ticketType: paymentData.ticketType,
-        ticketPrice: paymentData.ticketPrice.toString(),
-        eventCreatorId: paymentData.eventCreatorId,
+        ticketPrice: totalFromCart.toString(),
+        eventCreatorId: organizerId || paymentData.eventCreatorId,
+        cart: JSON.stringify(cart),
       })
 
       switch (selectedMethod) {
@@ -725,10 +755,10 @@ export default function PaymentClient() {
               />
 
               {/* Event Survey Form */}
-              {paymentData && userData && (
+              {paymentData && userData && cart.length > 0 && (
                 <EventSurveyForm
                   eventId={paymentData.eventId}
-                  ticketType={paymentData.ticketType}
+                  ticketType={cart[0].ticketType}
                   userEmail={userData.email}
                   onFormComplete={(responses) => {
                     setSurveyResponses(responses)
@@ -768,9 +798,8 @@ export default function PaymentClient() {
           metadata={{
             eventId: paymentData.eventId,
             eventName: paymentData.eventName,
-            ticketType: paymentData.ticketType,
-            ticketPrice: paymentData.ticketPrice,
-            eventCreatorId: paymentData.eventCreatorId,
+            cart: JSON.stringify(cart),
+            eventCreatorId: organizerId || paymentData.eventCreatorId,
             userId: user.uid,
             discountCode: discountData?.code || null,
             referralCode: referralData?.code || null,

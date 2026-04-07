@@ -48,6 +48,20 @@ const BookerDetailsSection: React.FC<BookerDetailsSectionProps> = ({ bookerDetai
   const currentEventId = params?.eventId as string
 
   useEffect(() => {
+    // Save organizer details to localStorage for payment page
+    if (bookerDetails && createdBy) {
+      if (typeof window !== "undefined") {
+        const organizerData = {
+          bookername: bookerDetails.username,
+          bookeremail: bookerDetails.email,
+          organizerId: createdBy,
+        }
+        localStorage.setItem("spotix_organizer", JSON.stringify(organizerData))
+      }
+    }
+  }, [bookerDetails, createdBy])
+
+  useEffect(() => {
     const fetchSuggestedEvents = async () => {
       if (!createdBy) return
 
