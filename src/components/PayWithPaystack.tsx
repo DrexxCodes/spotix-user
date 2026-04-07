@@ -13,12 +13,13 @@ interface PayWithPaystackProps {
   metadata: {
     eventId: string
     eventName: string
-    ticketType: string
+    ticketType?: string
     ticketPrice: number
     eventCreatorId: string
     userId: string
     discountCode?: string | null
     referralCode?: string | null
+    cart?: string
   }
   onSuccess: (reference: string) => void
   onClose: () => void

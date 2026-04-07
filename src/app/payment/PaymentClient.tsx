@@ -894,11 +894,13 @@ export default function PaymentClient() {
           metadata={{
             eventId: paymentData.eventId,
             eventName: paymentData.eventName,
-            cart: JSON.stringify(cart),
+            ticketType: cart.length > 0 ? cart[0].ticketType : "",
+            ticketPrice: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
             eventCreatorId: organizerId || paymentData.eventCreatorId,
             userId: user.uid,
             discountCode: discountData?.code || null,
             referralCode: referralData?.code || null,
+            cart: JSON.stringify(cart),
           }}
           onSuccess={handlePaystackSuccess}
           onClose={handlePaystackClose}
