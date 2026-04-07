@@ -612,6 +612,10 @@ export default function PaymentClient() {
       userFullName: userData.fullName || "Valued Customer",
       userEmail: userData.email,
       surveyResponses: surveyResponses || null,
+      // Guest data if not authenticated
+      guestEmail: !user ? guestEmail : null,
+      guestFullName: !user ? guestFullName : null,
+      guestPhone: !user ? guestPhone : null,
     }
 
     // Submit survey responses if they exist
@@ -886,20 +890,21 @@ export default function PaymentClient() {
       </main>
 
       {/* Paystack Payment Modal */}
-      {showPaystackModal && paystackReference && user && !isFreeEvent && (
+      {showPaystackModal && paystackReference && !isFreeEvent && (
         <PayWithPaystack
-          email={user.email || ""}
+          email={user?.email || guestEmail || userData?.email || ""}
           amount={totalAmount}
           reference={paystackReference}
           metadata={{
             eventId: paymentData.eventId,
             eventName: paymentData.eventName,
-            ticketPrice: paymentData.ticketPrice,
-            cart: JSON.stringify(cart),
+            ticketType: cart.length > 0 ? cart[0].ticketType : "",
+            ticketPrice: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
             eventCreatorId: organizerId || paymentData.eventCreatorId,
-            userId: user.uid,
+            userId: user?.uid || guestEmail || "",
             discountCode: discountData?.code || null,
             referralCode: referralData?.code || null,
+            cart: JSON.stringify(cart),
           }}
           onSuccess={handlePaystackSuccess}
           onClose={handlePaystackClose}

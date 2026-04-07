@@ -79,36 +79,59 @@ export default function PayWithPaystack({
     }
   }, [])
 
-  // Check if user has phone number
+  // Check if user has phone number (for authenticated users) or use guest phone
   useEffect(() => {
     const checkPhoneNumber = async () => {
       try {
         const user = auth.currentUser
-        if (!user) {
-          setError("You must be logged in to proceed")
-          setCheckingPhone(false)
-          return
-        }
+        
+        // For authenticated users, fetch phone from Firebase
+        if (user) {
+          const userDocRef = doc(db, "users", user.uid)
+          const userDoc = await getDoc(userDocRef)
 
-        const userDocRef = doc(db, "users", user.uid)
-        const userDoc = await getDoc(userDocRef)
+          if (userDoc.exists()) {
+            const userData = userDoc.data()
+            const userPhone = userData.phoneNumber
 
-        if (userDoc.exists()) {
-          const userData = userDoc.data()
-          const userPhone = userData.phoneNumber
-
-          if (userPhone && userPhone.trim() !== "") {
-            console.log("Phone number found:", userPhone)
-            setPhoneNumber(userPhone)
-            setCheckingPhone(false)
+            if (userPhone && userPhone.trim() !== "") {
+              console.log("Phone number found:", userPhone)
+              setPhoneNumber(userPhone)
+              setCheckingPhone(false)
+            } else {
+              console.log("No phone number found, showing modal")
+              setShowPhoneNumberModal(true)
+              setCheckingPhone(false)
+            }
           } else {
-            console.log("No phone number found, showing modal")
+            console.log("User document not found, showing phone modal")
             setShowPhoneNumberModal(true)
             setCheckingPhone(false)
           }
         } else {
-          console.log("User document not found, showing phone modal")
-          setShowPhoneNumberModal(true)
+          // For guest users, phone should come from the guest form via metadata
+          console.log("Guest user - checking metadata for phone")
+          // We'll extract phone from sessionStorage where guest data is stored
+          const paymentData = sessionStorage.getItem("paystack_payment_data")
+          if (paymentData) {
+            try {
+              const parsed = JSON.parse(paymentData)
+              const guestPhone = parsed.guestPhone
+              if (guestPhone && guestPhone.trim() !== "") {
+                console.log("Guest phone found from metadata")
+                setPhoneNumber(guestPhone)
+              } else {
+                console.log("No phone number for guest, showing modal")
+                setShowPhoneNumberModal(true)
+              }
+            } catch (error) {
+              console.error("Error parsing payment data:", error)
+              setShowPhoneNumberModal(true)
+            }
+          } else {
+            console.log("No payment data found, showing phone modal")
+            setShowPhoneNumberModal(true)
+          }
           setCheckingPhone(false)
         }
       } catch (error) {
@@ -141,10 +164,18 @@ export default function PayWithPaystack({
       return
     }
 
-    if (!phoneNumber) {
-      console.log("No phone number, showing modal")
+    // For authenticated users, require phone number
+    // For guests, allow payment without phone (it's optional in metadata)
+    const user = auth.currentUser
+    if (!phoneNumber && user) {
+      console.log("Authenticated user with no phone number, showing modal")
       setShowPhoneNumberModal(true)
       return
+    }
+    
+    if (!phoneNumber && !user) {
+      console.log("Guest user without phone number, continuing with payment")
+      // Guest can proceed without phone number
     }
 
     const paystackPublicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
@@ -249,7 +280,13 @@ export default function PayWithPaystack({
       paymentInitialized,
     })
 
-    if (scriptLoaded && !checkingPhone && phoneNumber && !error && !paymentInitialized) {
+    // For authenticated users, require phone number
+    // For guests, allow initialization even without phone number
+    const user = auth.currentUser
+    const isReady = scriptLoaded && !checkingPhone && !error && !paymentInitialized
+    const hasRequiredData = user ? phoneNumber : true // Guests don't need phone to initialize
+
+    if (isReady && hasRequiredData) {
       console.log("All conditions met, initializing payment in 500ms...")
       // Small delay to ensure everything is ready
       const timer = setTimeout(() => {
