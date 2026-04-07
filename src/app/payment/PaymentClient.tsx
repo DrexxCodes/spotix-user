@@ -94,12 +94,12 @@ export default function PaymentClient() {
   const [guestPhone, setGuestPhone] = useState("")
   const [showGuestForm, setShowGuestForm] = useState(false)
   const [cart, setCart] = useState<any[]>([])
-  
+
   // Organizer state
   const [organizerName, setOrganizerName] = useState("")
   const [organizerEmail, setOrganizerEmail] = useState("")
   const [organizerId, setOrganizerId] = useState("")
-  
+
   // Survey state for multiple tickets
   const [surveyRequiredTickets, setSurveyRequiredTickets] = useState<Set<string>>(new Set())
   const [checkingSurveyRequirements, setCheckingSurveyRequirements] = useState(false)
@@ -109,7 +109,7 @@ export default function PaymentClient() {
     if (typeof window !== "undefined") {
       const savedCart = JSON.parse(localStorage.getItem("spotix_cart") || "[]")
       setCart(savedCart)
-      
+
       const organizer = localStorage.getItem("spotix_organizer")
       if (organizer) {
         try {
@@ -121,7 +121,7 @@ export default function PaymentClient() {
           console.error("Error parsing organizer data:", error)
         }
       }
-      
+
       // Load guest data from localStorage if it exists
       const guestData = localStorage.getItem("spotix_guest_checkout")
       if (guestData) {
@@ -148,12 +148,12 @@ export default function PaymentClient() {
       try {
         // Check each unique ticket type in cart
         const uniqueTicketTypes = Array.from(new Set(cart.map(item => item.ticketType)))
-        
+
         for (const ticketType of uniqueTicketTypes) {
           const response = await fetch(
             `/api/v1/survey?eventId=${paymentData.eventId}&ticketType=${encodeURIComponent(ticketType)}`
           )
-          
+
           if (response.ok) {
             const result = await response.json()
             if (result.requiresForm) {
@@ -265,14 +265,14 @@ export default function PaymentClient() {
     try {
       // Use the new flat structure API
       const response = await fetch(`/api/v1/event?eventId=${eventId}`)
-      
+
       if (!response.ok) {
         console.error("Failed to fetch event details")
         return existingData
       }
 
       const result = await response.json()
-      
+
       if (result.success && result.data) {
         const data = result.data
 
@@ -405,7 +405,7 @@ export default function PaymentClient() {
 
   const createPaymentReference = async () => {
     if (!paymentData || cart.length === 0) return null
-    
+
     // For guests, userData won't be set from Firestore, but we need guestEmail/guestFullName
     // For authenticated users, userData must be set
     if (user && !userData) return null
@@ -418,7 +418,7 @@ export default function PaymentClient() {
       // Calculate totals from cart items
       const subtotalBeforeDiscount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
       const totalVat = cart.reduce((sum, item) => sum + ((item.vat || 0) * item.quantity), 0)
-      
+
       let discountAmount = 0
       if (discountData && !isFreeEvent) {
         if (discountData.discountType === "percentage") {
@@ -471,7 +471,7 @@ export default function PaymentClient() {
         let finalGuestEmail = guestEmail
         let finalGuestFullName = guestFullName
         let finalGuestPhone = guestPhone
-        
+
         // If state variables are empty, try to load from localStorage
         if (!finalGuestEmail || !finalGuestFullName) {
           const savedGuestData = localStorage.getItem("spotix_guest_checkout")
@@ -486,7 +486,7 @@ export default function PaymentClient() {
             }
           }
         }
-        
+
         requestBody.guestEmail = finalGuestEmail
         requestBody.guestFullName = finalGuestFullName
         requestBody.guestPhone = finalGuestPhone
@@ -694,7 +694,7 @@ export default function PaymentClient() {
     setGuestFullName(fullName)
     setGuestEmail(email)
     setGuestPhone(phone)
-    
+
     // Persist guest data to localStorage
     if (typeof window !== "undefined") {
       localStorage.setItem("spotix_guest_checkout", JSON.stringify({
@@ -703,7 +703,7 @@ export default function PaymentClient() {
         guestPhone: phone,
       }))
     }
-    
+
     setShowGuestForm(false)
   }
 
@@ -894,13 +894,12 @@ export default function PaymentClient() {
           metadata={{
             eventId: paymentData.eventId,
             eventName: paymentData.eventName,
-            ticketType: cart.length > 0 ? cart[0].ticketType : "",
-            ticketPrice: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+            ticketPrice: paymentData.ticketPrice,
+            cart: JSON.stringify(cart),
             eventCreatorId: organizerId || paymentData.eventCreatorId,
             userId: user.uid,
             discountCode: discountData?.code || null,
             referralCode: referralData?.code || null,
-            cart: JSON.stringify(cart),
           }}
           onSuccess={handlePaystackSuccess}
           onClose={handlePaystackClose}
