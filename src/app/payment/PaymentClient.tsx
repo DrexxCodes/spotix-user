@@ -93,8 +93,15 @@ export default function PaymentClient() {
   const [guestEmail, setGuestEmail] = useState("")
   const [guestPhone, setGuestPhone] = useState("")
   const [showGuestForm, setShowGuestForm] = useState(false)
+  const [cart, setCart] = useState<any[]>([])
 
-  const cart = JSON.parse(localStorage.getItem("spotix_cart") || "[]")
+  // Load cart from localStorage (client-side only)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedCart = JSON.parse(localStorage.getItem("spotix_cart") || "[]")
+      setCart(savedCart)
+    }
+  }, [])
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -327,7 +334,11 @@ export default function PaymentClient() {
   }
 
   const createPaymentReference = async () => {
-    if (!paymentData || !userData) return null
+    if (!paymentData) return null
+    
+    // For guests, userData won't be set from Firestore, but we need guestEmail/guestFullName
+    // For authenticated users, userData must be set
+    if (user && !userData) return null
 
     setCreatingReference(true)
 
@@ -366,11 +377,19 @@ export default function PaymentClient() {
         stopDate: paymentData.stopDate || null,
         bookerName: paymentData.bookerName || null,
         bookerEmail: paymentData.bookerEmail || null,
-        userFullName: userData.fullName || "Valued Customer",
-        userEmail: userData.email,
-        guestEmail: !user ? (guestEmail || userData.email) : null,
-        guestFullName: !user ? (guestFullName || userData.fullName) : null,
-        guestPhone: !user ? guestPhone : null,
+      }
+
+      // For authenticated users, include user data
+      if (user && userData) {
+        requestBody.userFullName = userData.fullName || "Valued Customer"
+        requestBody.userEmail = userData.email
+      }
+
+      // For guests, include guest data
+      if (!user) {
+        requestBody.guestEmail = guestEmail
+        requestBody.guestFullName = guestFullName
+        requestBody.guestPhone = guestPhone
       }
 
       // Add payment-specific fields only for paid events
@@ -392,6 +411,7 @@ export default function PaymentClient() {
         headers.Authorization = `Bearer ${idToken}`
       }
 
+      console.log("[v0] Creating payment reference with body:", requestBody)
       const response = await fetch(endpoint, {
         method: "POST",
         headers,
@@ -400,6 +420,7 @@ export default function PaymentClient() {
 
       if (!response.ok) {
         const errorData = await response.json()
+        console.log("[v0] Payment reference creation failed:", errorData)
         throw new Error(errorData.error || "Failed to create reference")
       }
 
