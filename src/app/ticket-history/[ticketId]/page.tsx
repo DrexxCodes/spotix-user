@@ -39,8 +39,6 @@ export default function TicketHistoryInfo() {
   const [error, setError] = useState<string | null>(null)
   const [qrCodeGenerated, setQrCodeGenerated] = useState(false)
   const [generatingQr, setGeneratingQr] = useState(false)
-  const [isEventDay, setIsEventDay] = useState(false)
-  const [showSecurityDialog, setShowSecurityDialog] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
 
   const formatDisplayDate = (dateString: string) => {
@@ -73,18 +71,7 @@ export default function TicketHistoryInfo() {
     return timeString
   }
 
-  const checkIfEventDay = (eventDate?: string) => {
-    if (!eventDate) return false
-    try {
-      const today = new Date()
-      const eventDateObj = new Date(eventDate)
-      today.setHours(0, 0, 0, 0)
-      eventDateObj.setHours(0, 0, 0, 0)
-      return today.getTime() >= eventDateObj.getTime()
-    } catch {
-      return false
-    }
-  }
+
 
   useEffect(() => {
     const fetchTicketDetails = async () => {
@@ -147,7 +134,6 @@ export default function TicketHistoryInfo() {
           }
 
           setTicketDetails(ticketData)
-          setIsEventDay(checkIfEventDay(ticketData.eventDate))
         }
 
         setLoading(false)
@@ -162,11 +148,6 @@ export default function TicketHistoryInfo() {
   }, [ticketId, router])
 
   const handleGenerateQR = () => {
-    if (!isEventDay) {
-      setShowSecurityDialog(true)
-      return
-    }
-
     setGeneratingQr(true)
     setTimeout(() => {
       setQrCodeGenerated(true)
@@ -328,9 +309,7 @@ export default function TicketHistoryInfo() {
             <div className="space-y-3">
               <div className="flex justify-between py-2 border-b border-gray-100">
                 <span className="text-gray-600">Ticket ID</span>
-                <span className="font-medium text-gray-900 font-mono text-sm">
-                  {isEventDay ? ticketId : "Shown on event day"}
-                </span>
+                <span className="font-medium text-gray-900 font-mono text-sm">{ticketId}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-gray-100">
                 <span className="text-gray-600">Reference</span>
@@ -435,36 +414,6 @@ export default function TicketHistoryInfo() {
           )}
         </div>
       </div>
-
-      {/* Security Dialog */}
-      {showSecurityDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-purple-100 rounded-full">
-                <QrCode size={24} className="text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Ticket Security Notice</h3>
-            </div>
-            <p className="text-gray-600 mb-4">
-              For your ticket security, the QR code can only be generated on the event day being{" "}
-              <strong>
-                {ticketDetails?.eventDate ? formatDisplayDate(ticketDetails.eventDate) : "the event date"}
-              </strong>
-              .
-            </p>
-            <p className="text-sm text-gray-500 mb-6">
-              This helps prevent unauthorized access and ensures your ticket remains secure until the event.
-            </p>
-            <button
-              onClick={() => setShowSecurityDialog(false)}
-              className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors"
-            >
-              I Understand
-            </button>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>

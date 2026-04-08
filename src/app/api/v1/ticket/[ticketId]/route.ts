@@ -64,10 +64,10 @@ function err(error: string, message: string, status: number, details?: string) {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { ticketId: string } }
+  { params }: { params: Promise<{ ticketId: string }> }
 ) {
   try {
-    const { ticketId } = params;
+    const { ticketId } = await params;
 
     if (!ticketId) {
       return err("Bad Request", "Ticket ID is required", 400);
