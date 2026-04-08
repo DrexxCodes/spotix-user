@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { auth, db } from "@/app/lib/firebase"
-import { doc, getDoc } from "firebase/firestore"
 import { ArrowLeft, Calendar, Clock, MapPin, QrCode, Sparkles, Download } from "lucide-react"
 import UserHeader from "@/components/UserHeader"
 import Footer from "@/components/footer"
@@ -97,61 +95,64 @@ export default function TicketHistoryInfo() {
           return
         }
 
-        const user = auth.currentUser
-        if (!user) {
+        const response = await fetch(`/api/v1/ticket/${ticketId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+
+        if (response.status === 401) {
           router.push("/auth/login")
           return
         }
 
-        const ticketDocRef = doc(db, "TicketHistory", user.uid, "tickets", ticketId)
-        const ticketDoc = await getDoc(ticketDocRef)
+        if (response.status === 403) {
+          setError("You do not have permission to access this ticket")
+          setLoading(false)
+          return
+        }
 
-        if (ticketDoc.exists()) {
-          const data = ticketDoc.data()
+        if (response.status === 404) {
+          setError("Ticket not found")
+          setLoading(false)
+          return
+        }
 
-          let purchaseDate = "N/A"
-          let purchaseTime = "N/A"
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ticket: ${response.statusText}`)
+        }
 
-          if (data.purchaseDate) {
-            if (typeof data.purchaseDate === "string") {
-              purchaseDate = data.purchaseDate
-              purchaseTime = data.purchaseTime || "N/A"
-            } else if (data.purchaseDate.toDate) {
-              const date = data.purchaseDate.toDate()
-              purchaseDate = date.toLocaleDateString()
-              purchaseTime = date.toLocaleTimeString()
-            }
-          }
+        const data = await response.json()
 
+        if (data.success && data.ticket) {
           const ticketData: TicketDetails = {
-            id: ticketId,
-            eventId: data.eventId || "",
-            eventName: data.eventName || "Unknown Event",
-            eventType: data.eventType || "Unknown",
-            ticketType: data.ticketType || "Standard",
-            ticketPrice: data.ticketPrice || 0,
-            ticketReference: data.ticketReference || "",
-            purchaseDate: purchaseDate,
-            purchaseTime: purchaseTime,
-            paymentMethod: data.paymentMethod || "Wallet",
-            eventCreatorId: data.eventCreatorId || "",
-            eventDate: data.eventDate || "",
-            eventEndDate: data.eventEndDate || "",
-            eventStart: data.eventStart || "",
-            eventEnd: data.eventEnd || "",
-            eventVenue: data.eventVenue || "",
-            stopDate: data.stopDate || "",
+            id: data.ticket.id,
+            eventId: data.ticket.eventId,
+            eventName: data.ticket.eventName,
+            eventType: data.ticket.eventType,
+            ticketType: data.ticket.ticketType,
+            ticketPrice: data.ticket.ticketPrice,
+            ticketReference: data.ticket.ticketReference,
+            purchaseDate: data.ticket.purchaseDate,
+            purchaseTime: data.ticket.purchaseTime,
+            paymentMethod: data.ticket.paymentMethod,
+            eventCreatorId: data.ticket.eventCreatorId,
+            eventDate: data.ticket.eventDate,
+            eventEndDate: data.ticket.eventEndDate,
+            eventStart: data.ticket.eventStart,
+            eventEnd: data.ticket.eventEnd,
+            eventVenue: data.ticket.eventVenue,
+            stopDate: data.ticket.stopDate,
           }
 
           setTicketDetails(ticketData)
           setIsEventDay(checkIfEventDay(ticketData.eventDate))
-        } else {
-          setError("Ticket not found")
         }
 
         setLoading(false)
       } catch (err) {
-        console.error("  Error fetching ticket:", err)
+        console.error("[v0] Error fetching ticket:", err)
         setError("Failed to load ticket details")
         setLoading(false)
       }
