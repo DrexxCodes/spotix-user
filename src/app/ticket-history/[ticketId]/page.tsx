@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { ArrowLeft, Calendar, Clock, MapPin, QrCode, Sparkles, Download } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, MapPin, QrCode, Sparkles, Download, Scan } from "lucide-react"
 import UserHeader from "@/components/UserHeader"
 import Footer from "@/components/footer"
 import QRCode from "react-qr-code"
 import html2canvas from "html2canvas"
+import FaceEmbeddingModal from "@/components/FaceEmbeddingModal"
 
 interface TicketDetails {
   id: string
@@ -40,6 +41,7 @@ export default function TicketHistoryInfo() {
   const [qrCodeGenerated, setQrCodeGenerated] = useState(false)
   const [generatingQr, setGeneratingQr] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [showFaceEmbeddingModal, setShowFaceEmbeddingModal] = useState(false)
 
   const formatDisplayDate = (dateString: string) => {
     if (!dateString) return "Not specified"
@@ -402,6 +404,13 @@ export default function TicketHistoryInfo() {
             <Calendar size={18} />
             Add to Calendar
           </button>
+          <button
+            onClick={() => setShowFaceEmbeddingModal(true)}
+            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors"
+          >
+            <Scan size={18} />
+            Generate Face ID
+          </button>
           {qrCodeGenerated && (
             <button
               onClick={handleDownloadTicket}
@@ -414,6 +423,18 @@ export default function TicketHistoryInfo() {
           )}
         </div>
       </div>
+
+      {/* Face Embedding Modal */}
+      <FaceEmbeddingModal
+        isOpen={showFaceEmbeddingModal}
+        ticketId={ticketId}
+        eventId={ticketDetails?.eventId || ""}
+        onClose={() => setShowFaceEmbeddingModal(false)}
+        onSuccess={() => {
+          // Optionally refresh ticket details or show a success message
+          console.log("[v0] Face embedding saved successfully")
+        }}
+      />
 
       <Footer />
     </div>
