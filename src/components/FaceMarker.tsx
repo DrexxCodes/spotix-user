@@ -113,7 +113,7 @@ export default function FaceMarker({ onEmbeddingComplete, isProcessing }: FaceMa
             // Compute face descriptor
             let recognitionData = new Float32Array(128)
             try {
-              const descriptor = await faceapi.nets.faceRecognitionNet.computeDescriptor(videoRef.current)
+              const descriptor = await faceapi.nets.faceRecognitionNet.computeFaceDescriptor(videoRef.current)
               if (descriptor) {
                 recognitionData = descriptor
               }
