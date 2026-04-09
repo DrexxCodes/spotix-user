@@ -109,13 +109,15 @@ export default function FaceMarker({ onEmbeddingComplete, isProcessing }: FaceMa
           for (let i = 0; i < resizedDetections.length; i++) {
             const detection = resizedDetections[i]
             const landmarks = detection.landmarks
-            
+
             // Compute face descriptor
-            let recognitionData = new Float32Array(128)
+            let recognitionData: Float32Array = new Float32Array(128)
             try {
               const descriptor = await faceapi.nets.faceRecognitionNet.computeFaceDescriptor(videoRef.current)
               if (descriptor) {
-                recognitionData = descriptor
+                // descriptor may be Float32Array or Float32Array[] — take first if array
+                const raw = Array.isArray(descriptor) ? descriptor[0] : descriptor
+                recognitionData = new Float32Array(raw)
               }
             } catch (err) {
               console.warn("[v0] Could not compute face descriptor:", err)
