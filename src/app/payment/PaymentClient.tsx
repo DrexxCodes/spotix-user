@@ -681,10 +681,10 @@ export default function PaymentClient() {
                 onRemoveReferral={removeReferral}
               />
 
-              {/* Event Survey Form */}
-              {paymentData && userData && (
+              {/* Event Survey Form - Only show for logged-in users */}
+              {isAuthenticated && paymentData && userData && sessionUser && (
                 <EventSurveyForm
-                  userId={paymentData.eventCreatorId}
+                  userId={sessionUser.uid}
                   eventId={paymentData.eventId}
                   ticketType={paymentData.ticketType}
                   userEmail={userData.email}
@@ -707,6 +707,8 @@ export default function PaymentClient() {
                 isFreeEvent={isFreeEvent}
                 creatingReference={creatingReference}
                 isSurveyComplete={isSurveyComplete}
+                isSurveyRequired={isAuthenticated}
+                isGuest={!isAuthenticated}
                 onSelectMethod={handlePaymentMethodSelect}
                 onProceed={handleProceedPayment}
               />
@@ -716,9 +718,9 @@ export default function PaymentClient() {
       </main>
 
       {/* Paystack Payment Modal */}
-      {showPaystackModal && paystackReference && user && !isFreeEvent && (
+      {showPaystackModal && paystackReference && sessionUser && userData && !isFreeEvent && (
         <PayWithPaystack
-          email={user.email || ""}
+          email={userData.email || ""}
           amount={totalAmount}
           reference={paystackReference}
           metadata={{
@@ -727,7 +729,7 @@ export default function PaymentClient() {
             ticketType: paymentData.ticketType,
             ticketPrice: paymentData.ticketPrice,
             eventCreatorId: paymentData.eventCreatorId,
-            userId: user.uid,
+            userId: sessionUser.uid,
             discountCode: discountData?.code || null,
             referralCode: referralData?.code || null,
           }}
