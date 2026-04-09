@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, ShieldCheck, X } from "lucide-react"
-import { auth, db } from "../lib/firebase"
-import { onAuthStateChanged } from "firebase/auth"
+import { db } from "../lib/firebase"
+import { doc, getDoc, collection, getDocs } from "firebase/firestore"
+import { getSessionUser, type SessionUser } from "@/app/lib/auth-client"
 import UserHeader from "@/components/UserHeader"
 import Footer from "@/components/footer"
-import { collection, getDocs, doc, getDoc } from "firebase/firestore"
 import PayWithPaystack from "@/components/PayWithPaystack"
 import { calculateVATFee } from "@/utils/priceUtility"
 
@@ -60,7 +60,9 @@ interface UserData {
 
 export default function PaymentClient() {
   const router = useRouter()
-  const [user, setUser] = useState<any | null>(null)
+  const [sessionUser, setSessionUser] = useState<SessionUser | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null)
   const [walletBalance, setWalletBalance] = useState(0)
@@ -87,20 +89,37 @@ export default function PaymentClient() {
   const [surveyResponses, setSurveyResponses] = useState<Record<string, any> | null>(null)
   const [isSurveyComplete, setIsSurveyComplete] = useState(false)
 
+  // Single auth check on mount - either logged in or guest
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser)
-        await fetchUserData(currentUser.uid)
-        await fetchWalletData(currentUser.uid)
-      } else {
-        router.push("/auth/login")
-        return
-      }
-    })
+    let cancelled = false
 
-    return () => unsubscribe()
-  }, [router])
+    const checkAuth = async () => {
+      try {
+        const user = await getSessionUser()
+        if (cancelled) return
+        
+        if (user) {
+          setSessionUser(user)
+          setIsAuthenticated(true)
+          await fetchUserData(user.uid)
+          await fetchWalletData(user.uid)
+        } else {
+          // No user logged in - allow guest checkout
+          setIsAuthenticated(false)
+        }
+      } catch (error) {
+        console.error("[v0] Auth check error:", error)
+        setIsAuthenticated(false)
+      } finally {
+        if (!cancelled) {
+          setAuthChecked(true)
+        }
+      }
+    }
+
+    checkAuth()
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     const loadPaymentData = async () => {
@@ -146,10 +165,10 @@ export default function PaymentClient() {
       setDataLoading(false)
     }
 
-    if (user) {
+    if (authChecked) {
       loadPaymentData()
     }
-  }, [user])
+  }, [authChecked])
 
   const fetchUserData = async (userId: string) => {
     try {
@@ -216,9 +235,7 @@ export default function PaymentClient() {
   const fetchWalletData = async (userId: string) => {
     try {
       const response = await fetch("/api/v1/iwss", {
-        headers: {
-          Authorization: `Bearer ${await auth.currentUser?.getIdToken()}`,
-        },
+        credentials: "include",
       })
 
       if (response.ok) {
@@ -267,8 +284,8 @@ export default function PaymentClient() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${await auth.currentUser?.getIdToken()}`,
         },
+        credentials: "include",
         body: JSON.stringify({
           code: discountCode.trim(),
           eventId: paymentData?.eventId,
@@ -320,16 +337,14 @@ export default function PaymentClient() {
   }
 
   const createPaymentReference = async () => {
-    if (!paymentData || !user || !userData) return null
+    if (!paymentData) return null
+    
+    // For logged-in users, userData is required
+    if (isAuthenticated && !userData) return null
 
     setCreatingReference(true)
 
     try {
-      const idToken = await auth.currentUser?.getIdToken()
-      if (!idToken) {
-        throw new Error("Authentication required")
-      }
-
       const isFreeEvent = paymentData.ticketPrice === 0
 
       let discountAmount = 0
@@ -364,8 +379,8 @@ export default function PaymentClient() {
         stopDate: paymentData.stopDate || null,
         bookerName: paymentData.bookerName || null,
         bookerEmail: paymentData.bookerEmail || null,
-        userFullName: userData.fullName || "Valued Customer",
-        userEmail: userData.email,
+        userFullName: userData?.fullName || "Valued Customer",
+        userEmail: userData?.email || "",
       }
 
       // Add payment-specific fields only for paid events
@@ -381,8 +396,8 @@ export default function PaymentClient() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
+        credentials: "include",
         body: JSON.stringify(requestBody),
       })
 
