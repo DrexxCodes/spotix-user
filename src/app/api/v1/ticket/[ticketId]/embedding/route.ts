@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/app/lib/firebase"
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore"
-import { verifyAccessToken } from "@/app/lib/auth-tokens"
+import { verifyAccessToken, type TokenAudience } from "@/app/lib/auth-tokens"
+
+const AUDIENCE: TokenAudience = "spotix-user"
 
 export async function POST(
   request: NextRequest,
@@ -10,8 +12,33 @@ export async function POST(
   try {
     const { ticketId } = await params
 
+    // Extract token from Authorization header or cookie
+    let token = ""
+    const authHeader = request.headers.get("authorization")
+    if (authHeader?.startsWith("Bearer ")) {
+      token = authHeader.substring(7)
+    } else {
+      token = request.cookies.get("spotix_u_at")?.value || ""
+    }
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
     // Verify authentication
-    const tokenData = verifyAccessToken(request)
+    let tokenData
+    try {
+      tokenData = await verifyAccessToken(token, AUDIENCE)
+    } catch (err) {
+      return NextResponse.json(
+        { success: false, message: "Invalid token" },
+        { status: 401 }
+      )
+    }
+
     if (!tokenData || !tokenData.email) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },

@@ -16,7 +16,7 @@ export default function FaceMarker({ onEmbeddingComplete, isProcessing }: FaceMa
   const [error, setError] = useState<string | null>(null)
   const [cameraActive, setCameraActive] = useState(false)
   const [embeddings, setEmbeddings] = useState<number[]>([])
-  const [confidence, setConfidence] = useState(0)
+  const [confidence, setConfidence] = useState<number>(0)
   const detectionLoopRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -26,9 +26,8 @@ export default function FaceMarker({ onEmbeddingComplete, isProcessing }: FaceMa
         const MODEL_URL = "/models/"
         await Promise.all([
           faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-          faceapi.nets.faceLandmarkNet.loadFromUri(MODEL_URL),
-          faceapi.nets.faceDetectionNet.loadFromUri(MODEL_URL),
-          faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
         ])
 
         setLoading(false)
@@ -84,7 +83,7 @@ export default function FaceMarker({ onEmbeddingComplete, isProcessing }: FaceMa
 
       try {
         const detections = await faceapi
-          .detectAllFaces(videoRef.current)
+          .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions())
           .withFaceLandmarks()
           .withFaceRecognition()
 
