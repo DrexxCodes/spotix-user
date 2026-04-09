@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AlertCircle, CheckCircle, Loader2 } from "lucide-react"
+import { AlertCircle, CheckCircle, Loader2, Check } from "lucide-react"
 import { auth } from "@/app/lib/firebase"
 
 interface AccountDetailsProps {
@@ -69,7 +69,6 @@ export default function AccountDetails({
 
   const handleBankInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
-    setBankInput(value)
 
     if (value.trim() === "") {
       setFilteredBanks([])
@@ -81,6 +80,18 @@ export default function AccountDetails({
     }
   }
 
+  // Auto-trigger account verification when account number reaches 10 digits and bank is selected
+  useEffect(() => {
+    if (accountNumber.length === 10 && bankName && accountVerificationStatus === "pending") {
+      // Auto-trigger verification after a short delay
+      const timer = setTimeout(async () => {
+        await verifyAccount(accountNumber, bankName)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [accountNumber, bankName])
+  }
+
   const selectBank = (bank: string) => {
     setBankInput(bank)
     onBankNameChange(bank)
@@ -90,13 +101,16 @@ export default function AccountDetails({
     setAccountVerificationError(null)
   }
 
-  const verifyAccount = async () => {
-    if (!accountNumber || !bankName) {
+  const verifyAccount = async (accountNum?: string, bank?: string) => {
+    const numToVerify = accountNum || accountNumber
+    const bankToVerify = bank || bankName
+    
+    if (!numToVerify || !bankToVerify) {
       setAccountVerificationError("Please provide account number and bank name")
       return
     }
 
-    if (accountNumber.length !== 10) {
+    if (numToVerify.length !== 10) {
       setAccountVerificationError("Account number must be 10 digits")
       return
     }
@@ -111,7 +125,7 @@ export default function AccountDetails({
       }
 
       const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
-      const response = await fetch(`${BACKEND_URL}/v1/verify?accountNumber=${accountNumber}&bankName=${encodeURIComponent(bankName)}`, {
+      const response = await fetch(`${BACKEND_URL}/v1/verify?accountNumber=${numToVerify}&bankName=${encodeURIComponent(bankToVerify)}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -171,9 +185,10 @@ export default function AccountDetails({
                   key={bank}
                   type="button"
                   onClick={() => selectBank(bank)}
-                  className="w-full text-left px-4 py-2.5 hover:bg-purple-50 transition-colors text-gray-900 text-sm"
+                  className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors text-gray-900 text-sm font-medium flex items-center justify-between group"
                 >
-                  {bank}
+                  <span>{bank}</span>
+                  <Check size={16} className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               ))}
             </div>

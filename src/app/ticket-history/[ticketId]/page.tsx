@@ -232,195 +232,171 @@ export default function TicketHistoryInfo() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col">
       <UserHeader />
 
-      <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-grow px-4 sm:px-6 lg:px-8 py-8 flex flex-col">
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 mb-6 font-medium"
+          className="inline-flex items-center gap-2 text-white hover:text-gray-300 mb-8 font-medium w-fit"
         >
           <ArrowLeft size={20} />
           Back to Tickets
         </button>
 
-        {/* Ticket Card */}
-        <div ref={ticketRef} className="bg-white rounded-lg shadow-lg p-8 mb-6">
-          {/* Header */}
-          <div className="mb-8 pb-6 border-b border-gray-200">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Ticket Details</h1>
-            <p className="text-gray-600">Event: {ticketDetails.eventName}</p>
-          </div>
+        {/* Main Container - Responsive Grid */}
+        <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Ticket Card - Takes 2 columns on large screens */}
+          <div ref={ticketRef} className="lg:col-span-2">
+            {/* Physical Ticket Design */}
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+              {/* Ticket Header - Premium Style */}
+              <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-8 py-12 text-white">
+                <h1 className="text-4xl font-bold mb-2">{ticketDetails.eventName}</h1>
+                <p className="text-purple-100 text-lg">{ticketDetails.eventType}</p>
+              </div>
 
-          {/* Event Information */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Event Information</h2>
-            <div className="space-y-3">
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Event Name</span>
-                <span className="font-medium text-gray-900">{ticketDetails.eventName}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Event Type</span>
-                <span className="font-medium text-gray-900">{ticketDetails.eventType}</span>
-              </div>
-              {ticketDetails.eventVenue && (
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600 flex items-center gap-2">
-                    <MapPin size={16} />
-                    Venue
-                  </span>
-                  <span className="font-medium text-gray-900">{ticketDetails.eventVenue}</span>
+              {/* Ticket Body */}
+              <div className="p-8 lg:p-10">
+                {/* Event Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 pb-10 border-b-2 border-dashed border-gray-300">
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Date & Time</h3>
+                    <p className="text-2xl font-bold text-gray-900 mb-3">{ticketDetails.eventDate && formatDisplayDate(ticketDetails.eventDate)}</p>
+                    {ticketDetails.eventStart && (
+                      <p className="text-gray-600 flex items-center gap-2">
+                        <Clock size={16} className="text-purple-600" />
+                        {formatDisplayTime(ticketDetails.eventStart)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Location</h3>
+                    <p className="text-lg font-semibold text-gray-900 mb-3">{ticketDetails.eventVenue || "Not specified"}</p>
+                    <p className="text-gray-600 flex items-center gap-2">
+                      <MapPin size={16} className="text-purple-600" />
+                      Event Venue
+                    </p>
+                  </div>
                 </div>
-              )}
-              {ticketDetails.eventDate && (
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600 flex items-center gap-2">
-                    <Calendar size={16} />
-                    Event Date
-                  </span>
-                  <span className="font-medium text-gray-900">{formatDisplayDate(ticketDetails.eventDate)}</span>
+
+                {/* Ticket Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10 pb-10 border-b-2 border-dashed border-gray-300">
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Ticket Type</h3>
+                    <p className="text-xl font-bold text-gray-900">{ticketDetails.ticketType}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Price</h3>
+                    <p className="text-2xl font-bold text-purple-600">₦{ticketDetails.ticketPrice.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Reference</h3>
+                    <p className="text-lg font-mono text-gray-900 break-all">{ticketDetails.ticketReference}</p>
+                  </div>
                 </div>
-              )}
-              {ticketDetails.eventStart && (
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600 flex items-center gap-2">
-                    <Clock size={16} />
-                    Start Time
-                  </span>
-                  <span className="font-medium text-gray-900">{formatDisplayTime(ticketDetails.eventStart)}</span>
+
+                {/* Ticket ID - Prominently displayed */}
+                <div className="mb-10 pb-10 border-b-2 border-dashed border-gray-300">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Ticket Number</h3>
+                  <p className="text-3xl font-mono font-bold text-gray-900 tracking-wider">{ticketId}</p>
                 </div>
-              )}
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Ticket Type</span>
-                <span className="font-medium text-gray-900">{ticketDetails.ticketType}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-gray-600">Price</span>
-                <span className="font-medium text-purple-600 text-lg">
-                  ₦{ticketDetails.ticketPrice.toLocaleString()}
-                </span>
+
+                {/* Purchase Info */}
+                <div className="grid grid-cols-2 gap-6 mb-10">
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Purchase Date</h3>
+                    <p className="text-gray-900 font-medium">{ticketDetails.purchaseDate}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Purchase Time</h3>
+                    <p className="text-gray-900 font-medium">{ticketDetails.purchaseTime}</p>
+                  </div>
+                </div>
+
+                {/* Spotix Footer */}
+                <div className="text-center text-sm text-gray-500 pt-6">
+                  <p className="font-semibold">Powered by Spotix</p>
+                  <p className="text-xs mt-1">Your trusted ticketing partner</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Ticket Information */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Ticket Information</h2>
-            <div className="space-y-3">
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Ticket ID</span>
-                <span className="font-medium text-gray-900 font-mono text-sm">{ticketId}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Reference</span>
-                <span className="font-medium text-gray-900">{ticketDetails.ticketReference}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-gray-600">Payment Method</span>
-                <span className="font-medium text-gray-900">{ticketDetails.paymentMethod}</span>
-              </div>
+          {/* Right Sidebar - QR Code & Actions */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            {/* QR Code Card */}
+            <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Entry Pass</h3>
+              {!qrCodeGenerated ? (
+                <div className="flex flex-col items-center justify-center w-full">
+                  <QrCode size={64} className="text-gray-300 mb-4" />
+                  <p className="text-sm text-gray-600 text-center mb-6">Generate your QR code for entry</p>
+                  <button
+                    onClick={handleGenerateQR}
+                    disabled={generatingQr}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors font-medium"
+                  >
+                    {generatingQr ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={18} />
+                        <span>Generate</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center w-full">
+                  <div className="p-3 bg-gray-50 border-2 border-purple-200 rounded-lg mb-4 w-fit">
+                    <QRCode value={ticketId} size={180} level="H" fgColor="#6b2fa5" bgColor="#ffffff" />
+                  </div>
+                  <p className="text-xs text-gray-600 text-center mb-4">
+                    Show only to official check-in staff
+                  </p>
+                  <button
+                    onClick={() => setQrCodeGenerated(false)}
+                    className="text-purple-600 hover:text-purple-700 font-medium text-sm"
+                  >
+                    Hide QR Code
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
 
-          {/* Purchase Information */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Purchase Information</h2>
-            <div className="space-y-3">
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600 flex items-center gap-2">
-                  <Calendar size={16} />
-                  Purchase Date
-                </span>
-                <span className="font-medium text-gray-900">{ticketDetails.purchaseDate}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-gray-600 flex items-center gap-2">
-                  <Clock size={16} />
-                  Purchase Time
-                </span>
-                <span className="font-medium text-gray-900">{ticketDetails.purchaseTime}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* QR Code Section */}
-          <div className="mb-8 pb-8 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Entry QR Code</h2>
-            {!qrCodeGenerated ? (
-              <div className="flex flex-col items-center justify-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                <QrCode size={48} className="text-gray-400 mb-3" />
-                <p className="text-gray-600 mb-4">Generate your QR code for event entry</p>
+            {/* Action Buttons - Stacked on sidebar */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleAddToCalendar}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors"
+              >
+                <Calendar size={18} />
+                <span>Calendar</span>
+              </button>
+              <button
+                onClick={() => setShowFaceEmbeddingModal(true)}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors"
+              >
+                <Scan size={18} />
+                <span>Face ID</span>
+              </button>
+              {qrCodeGenerated && (
                 <button
-                  onClick={handleGenerateQR}
-                  disabled={generatingQr}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                  onClick={handleDownloadTicket}
+                  disabled={isDownloading}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
                 >
-                  {generatingQr ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Generating...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={18} />
-                      <span>Generate QR Code</span>
-                    </>
-                  )}
+                  <Download size={18} />
+                  <span>{isDownloading ? "Downloading..." : "Download"}</span>
                 </button>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center py-8">
-                <div className="p-4 bg-white border-2 border-purple-200 rounded-lg mb-4">
-                  <QRCode value={ticketId} size={200} level="H" fgColor="#6b2fa5" bgColor="#ffffff" />
-                </div>
-                <p className="text-sm text-gray-600 text-center mb-4 max-w-md">
-                  No Spotix Staff or Event planner will ever ask you for your ID. Present this only to the event's
-                  check-in staff.
-                </p>
-                <button
-                  onClick={() => setQrCodeGenerated(false)}
-                  className="text-purple-600 hover:text-purple-700 font-medium text-sm"
-                >
-                  Hide QR Code
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-
-          {/* Footer */}
-          <div className="text-center text-sm text-gray-500">
-            <p>Powered by Spotix</p>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <button
-            onClick={handleAddToCalendar}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors"
-          >
-            <Calendar size={18} />
-            Add to Calendar
-          </button>
-          <button
-            onClick={() => setShowFaceEmbeddingModal(true)}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors"
-          >
-            <Scan size={18} />
-            Generate Face ID
-          </button>
-          {qrCodeGenerated && (
-            <button
-              onClick={handleDownloadTicket}
-              disabled={isDownloading}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
-            >
-              <Download size={18} />
-              {isDownloading ? "Downloading..." : "Download Ticket"}
-            </button>
-          )}
         </div>
       </div>
 
