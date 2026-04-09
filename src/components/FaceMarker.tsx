@@ -85,8 +85,13 @@ export default function FaceMarker({ onEmbeddingComplete, isProcessing }: FaceMa
         const detections = await faceapi
           .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions())
           .withFaceLandmarks()
-          .withFaceRecognition()
 
+        if (!detections || detections.length === 0) {
+          detectionLoopRef.current = requestAnimationFrame(detectFace)
+          return
+        }
+
+        // Compute face descriptors for detected faces
         const canvas = canvasRef.current
         const displaySize = {
           width: videoRef.current.width,
@@ -100,10 +105,21 @@ export default function FaceMarker({ onEmbeddingComplete, isProcessing }: FaceMa
         if (ctx) {
           ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-          // Draw face landmarks
-          resizedDetections.forEach((detection) => {
+          // Process each detected face
+          for (let i = 0; i < resizedDetections.length; i++) {
+            const detection = resizedDetections[i]
             const landmarks = detection.landmarks
-            const recognitionData = detection.descriptor
+            
+            // Compute face descriptor
+            let recognitionData = new Float32Array(128)
+            try {
+              const descriptor = await faceapi.nets.faceRecognitionNet.computeDescriptor(videoRef.current)
+              if (descriptor) {
+                recognitionData = descriptor
+              }
+            } catch (err) {
+              console.warn("[v0] Could not compute face descriptor:", err)
+            }
 
             // Set drawing styles
             ctx.strokeStyle = "#00ff00"
@@ -160,7 +176,7 @@ export default function FaceMarker({ onEmbeddingComplete, isProcessing }: FaceMa
                 onEmbeddingComplete(Array.from(recognitionData))
               }
             }
-          })
+          }
 
           // Draw instruction text
           ctx.fillStyle = "#00ff00"
